@@ -218,3 +218,25 @@
 	SAY Dude. Weed.
 	DELAY 90
 	"}
+
+
+/obj/item/disk/holodisk/LLfa
+	preset_image_type = /datum/preset_holoimage/syndicatebattlecruisercaptain
+	preset_record_text = {"
+	NAME Gorlex Narrator
+	DELAY 10
+	SAY We're celebrating the TRUEST love that has ever existed!
+	DELAY 20
+	SAY The love a Gorlex Marauder has for KILLING!!!
+	DELAY 20
+	SAY Killing relationships, that is. And you know what the number one relationship killer is?
+	DELAY 20
+	SAY Hookers.
+	DELAY 40
+	SAY May your pathetic SolFed gods be with you as you navigate this fine dining establishment while beset by HOOKERS.
+	DELAY 30
+	SAY I hope they don't give you crabs!
+	DELAY 60
+	SAY I do actually hope they give you crabs, and that you suffer.
+	DELAY 10
+	"}
