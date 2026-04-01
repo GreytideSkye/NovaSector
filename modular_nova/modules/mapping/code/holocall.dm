@@ -90,7 +90,7 @@
 	DELAY 30
 	"}
 
-/obj/item/disk/holodisk/LLab
+/obj/item/disk/holodisk/LLba
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
 	NAME Narrator
@@ -110,5 +110,91 @@
 	SAY You might experience a change of heart.
 	DELAY 40
 	SAY If you do not, you may need to manually invoke one.
+	DELAY 120
+	"}
+
+/obj/item/disk/holodisk/LLca
+	preset_image_type = /datum/preset_holoimage/captain
+	preset_record_text = {"
+	NAME Narrator
+	DELAY 10
+	SAY Congratulations! Having escaped into the mineshaft, you find yourself in, wait for the title card,
+	DELAY 30
+	SAY CABIN FEVER!!!
+	DELAY 30
+	SAY So you find a civilization with cabins. The locals want to see if you're worthy of the power of love.
+	DELAY 30
+	SAY These helpful Ashwalkers want to separate you later, but you get this sneaky moment to collude.
+	DELAY 30
+	SAY Later, you're going to have to identify your partner by speaking in one-word grunts. Or, to be specific?
+	DELAY 30
+	SAY You're going to be in a cabin with a unique object, and you'll have to both identify the object to be certain it is your partner.
+	DELAY 40
+	SAY They will be in a dark cave you can only hear through a suspiciously radio-shaped tiny hole in the rock.
+	DELAY 40
+	SAY But once you're sure you've found your partner, find a pickaxe and bust through the wall!
+	DELAY 40
+	SAY Reminder that uh, keypads are finnicky, not that there are any, so if one doesn't work, surely a different one will.
+	DELAY 120
+	"}
+
+/obj/item/disk/holodisk/LLda
+	preset_image_type = /datum/preset_holoimage/hivebot
+	preset_record_text = {"
+	NAME Ashwalker Narrator
+	DELAY 10
+	SAY Ashwalker tribe rules!
+	DELAY 30
+	SAY Ugh. You, welcome to CAN YOU DIG IT?
+	DELAY 30
+	SAY You split up from partner. Partner stuck in rock.
+	DELAY 30
+	SAY Many partner. Many rock. Have to make guess which to escape... or we eat you or something uncivilized.
+	DELAY 30
+	SAY Ha ha. You never guess which partner correct partner.
+	DELAY 30
+	SAY You never be able to speak through radio-shaped hole in rock to identify partner based on suspicious object from cabin.
+	DELAY 40
+	SAY You extra never able to be able find pickaxe break through and find skeleton key to escape.
+	DELAY 40
+	SAY Maybe you just find skeleton! Then you become skeleton!
+	DELAY 40
+	SAY Skeleton from being dead!! Can you dig it???
+	DELAY 120
+	"}
+
+/obj/item/disk/holodisk/LLda
+	preset_image_type = /datum/preset_holoimage/captain
+	preset_record_text = {"
+	NAME Intermission Narrator
+	DELAY 10
+	SAY We've reached a midpoint in the Lovealand Experience.
+	DELAY 30
+	SAY Before you take a short break, maybe dig around in the vending machines or bathroom?
+	DELAY 30
+	SAY I just want to remind you why we do this.
+	DELAY 30
+	SAY Love can be found anywhere you look, but not enough people look.
+	DELAY 30
+	SAY The Nova Sector in particular has been blessed to know two such wayward souls, finding love where they wouldn't expect.
+	DELAY 20
+	SAY Not in a bathroom stall, but on horseback, in the wild Frontier. Where danger is long and lives are short.
+	DELAY 20
+	SAY Every single person in Central is glad to know that True Love can bloom, even on the battlefield.
+	DELAY 20
+	SAY Wait, that's too much foreshadowing.
+	DELAY 30
+	SAY But yes, here's to Central Command's newly wedded power couple, the Golden Alpharex, and the Sable Steel. 
+
+	DELAY 30
+	SAY Here's a moment of silence to fill with applause and good cheers for Golden and Sable.
+	DELAY 40
+	SAY May they be stronger together than they were apart.
+	DELAY 20
+	SAY We hope you are enjoying the festivities thus far, and the vending machines, and the bathroom.
+	DELAY 20
+	SAY There is a pickaxe in the bathroom. You use that on the rock walls in the previous test chamber to get the key to the next room.
+	DELAY 30
+	SAY But beware! Love gets tangled up in serious overgrowth! Every good relationship has a few weeds to pull!
 	DELAY 120
 	"}
