@@ -15,6 +15,7 @@
 /obj/item/disk/holodisk/LLintro
 	preset_image_type = /datum/preset_holoimage/clown
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/clown
 	NAME Greeting Clown
 	DELAY 10
 	SAY Welcome to the Revitalized Lovealand Experience!
