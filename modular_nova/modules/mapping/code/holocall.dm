@@ -28,12 +28,13 @@
 	SAY The way West is is written on the ceiling.
 	DELAY 40
 	SAY No wait, that's where I left the word Gullible. Still: find West, Contestants!
-	DELAY 40
+	DELAY 80
 	"}
 
 /obj/item/disk/holodisk/LLaa
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/engineer
 	NAME Narrator
 	DELAY 10
 	SAY Come, contestants, to the Dressing Room! The Loneliness Singularity is nearly upon us!
@@ -57,6 +58,7 @@
 /obj/item/disk/holodisk/LLab
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/engineer
 	NAME Narrator
 	DELAY 10
 	SAY Come, contestants, get Dressing Roomed! The Loneliness Singularity is nearly upon us!
@@ -80,6 +82,7 @@
 /obj/item/disk/holodisk/LLac
 	preset_image_type = /datum/preset_holoimage/engineer
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/engineer
 	NAME Ashe Andust
 	DELAY 10
 	SAY Steal my keycard and suffer my curse!
@@ -93,6 +96,7 @@
 /obj/item/disk/holodisk/LLba
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/captain
 	NAME Narrator
 	DELAY 10
 	SAY Welcome to the Camp Anionship!
@@ -116,6 +120,7 @@
 /obj/item/disk/holodisk/LLca
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/captain
 	NAME Narrator
 	DELAY 10
 	SAY Congratulations! Having escaped into the mineshaft, you find yourself in, wait for the title card,
@@ -141,6 +146,7 @@
 /obj/item/disk/holodisk/LLda
 	preset_image_type = /datum/preset_holoimage/hivebot
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/hivebot
 	NAME Ashwalker Narrator
 	DELAY 10
 	SAY Ashwalker tribe rules!
@@ -166,6 +172,7 @@
 /obj/item/disk/holodisk/LLia
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/captain
 	NAME Intermission Narrator
 	DELAY 10
 	SAY We've reached a midpoint in the Lovealand Experience.
@@ -201,6 +208,7 @@
 /obj/item/disk/holodisk/LLea
 	preset_image_type = /datum/preset_holoimage/assistant
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/assistant
 	NAME Intern
 	DELAY 10
 	SAY Dude, this place is called BAKED ATTRACTION.
@@ -223,6 +231,7 @@
 /obj/item/disk/holodisk/LLfa
 	preset_image_type = /datum/preset_holoimage/syndicatebattlecruisercaptain
 	preset_record_text = {"
+	PRESET /datum/preset_holoimage/syndicatebattlecruisercaptain
 	NAME Gorlex Narrator
 	DELAY 10
 	SAY We're celebrating the TRUEST love that has ever existed!
@@ -240,3 +249,80 @@
 	SAY I do actually hope they give you crabs, and that you suffer.
 	DELAY 10
 	"}
+
+/obj/item/disk/holodisk/LLfa
+	preset_image_type = /datum/preset_holoimage/woospider
+	preset_record_text = {"
+	PRESET /datum/preset_holoimage/woospider
+	NAME FINAL BOSS Narrator
+	DELAY 10
+	SAY Time to face the ultimate evil!
+	DELAY 20
+	SAY The impossibly low prices at the ShadyCigs vendor!
+	DELAY 20
+	SAY OH, ALSO
+	DELAY 20
+	NAME Dated Reference Narrator
+	PRESET /datum/preset_holoimage/ai
+	SAY CRAB BATTLE!!!
+	DELAY 20
+	SAY CRAB BATTLE!
+	DELAY 20
+	SAY CRAB Battle!!!!
+	DELAY 40
+	SAY Are they... still there?
+	DELAY 20
+	SAY Craaaab battle?
+	DELAY 40
+	SAY Hopefully congratulations on winning the crab battle?
+	DELAY 10
+	SAY If not, congratulations to the new crustacean station-goers. It's all yours, now.
+	DELAY 40
+	SAY May they be stronger together than they were apart.
+	DELAY 20
+	SAY We hope you are enjoying the festivities thus far, and the vending machines, and the bathroom.
+	DELAY 20
+	SAY There is a pickaxe in the bathroom. You use that on the rock walls in the previous test chamber to get the key to the next room.
+	DELAY 30
+	SAY But beware! Love gets tangled up in serious overgrowth! Every good relationship has a few weeds to pull!
+	DELAY 120
+	"}
+
+/obj/item/disk/holodisk/LLfb
+	preset_image_type = /datum/preset_holoimage/woospider
+	preset_record_text = {"
+	PRESET /datum/preset_holoimage/woospider
+	NAME FINAL BOSS Narrator
+	DELAY 10
+	SAY Time to face the ultimate evil!
+	DELAY 20
+	SAY The impossibly low prices at the ShadyCigs vendor!
+	DELAY 20
+	SAY OH, ALSO
+	DELAY 20
+	NAME Dated Reference Narrator
+	PRESET /datum/preset_holoimage/ai
+	SAY CRAB BATTLE!!!
+	DELAY 20
+	SAY CRAB BATTLE!
+	DELAY 20
+	SAY CRAB Battle!!!!
+	DELAY 40
+	SAY Are they... still there?
+	DELAY 20
+	SAY Craaaab battle?
+	DELAY 40
+	SAY Hopefully congratulations on winning the crab battle?
+	DELAY 10
+	SAY If not, congratulations to the new crustacean station-goers. It's all yours, now.
+	DELAY 40
+	SAY May they be stronger together than they were apart.
+	DELAY 20
+	SAY We hope you are enjoying the festivities thus far, and the vending machines, and the bathroom.
+	DELAY 20
+	SAY There is a pickaxe in the bathroom. You use that on the rock walls in the previous test chamber to get the key to the next room.
+	DELAY 30
+	SAY But beware! Love gets tangled up in serious overgrowth! Every good relationship has a few weeds to pull!
+	DELAY 120
+	"}
+
