@@ -163,7 +163,7 @@
 	DELAY 120
 	"}
 
-/obj/item/disk/holodisk/LLda
+/obj/item/disk/holodisk/LLia
 	preset_image_type = /datum/preset_holoimage/captain
 	preset_record_text = {"
 	NAME Intermission Narrator
@@ -185,7 +185,6 @@
 	SAY Wait, that's too much foreshadowing.
 	DELAY 30
 	SAY But yes, here's to Central Command's newly wedded power couple, the Golden Alpharex, and the Sable Steel. 
-
 	DELAY 30
 	SAY Here's a moment of silence to fill with applause and good cheers for Golden and Sable.
 	DELAY 40
@@ -197,4 +196,25 @@
 	DELAY 30
 	SAY But beware! Love gets tangled up in serious overgrowth! Every good relationship has a few weeds to pull!
 	DELAY 120
+	"}
+
+/obj/item/disk/holodisk/LLea
+	preset_image_type = /datum/preset_holoimage/assistant
+	preset_record_text = {"
+	NAME Intern
+	DELAY 10
+	SAY Dude, this place is called BAKED ATTRACTION.
+	DELAY 20
+	SAY It's a play on an old gameshow, Naked Attraction, but there's COOKING.
+	DELAY 20
+	SAY There's COOKING! You were supposed to be like, hey it's Colonial Pod People.
+	DELAY 20
+	SAY But it's COOKING. Can you believe we forgot the ovens last time?
+	DELAY 20
+	SAY Oh yeah I knocked some plants over and now there's weeds everywhere.
+	DELAY 20
+	SAY Hehe, baked attraction.
+	DELAY 40
+	SAY Dude. Weed.
+	DELAY 90
 	"}
