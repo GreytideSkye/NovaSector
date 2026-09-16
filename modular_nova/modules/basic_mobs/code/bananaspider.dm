@@ -27,11 +27,9 @@
 	AddElement(/datum/element/death_drops, banana_drops)
 	AddComponent(/datum/component/squashable, squash_chance = 50, squash_damage = 1)
 
+/// Same as a regular cockroach, but wanders less often (old walk_chance=10 vs the default 25).
 /datum/ai_controller/basic_controller/cockroach/banana_spider
-	idle_behavior = /datum/idle_behavior/idle_random_walk/banana_spider
-
-/datum/idle_behavior/idle_random_walk/banana_spider
-	walk_chance = 10
+	behavior_tree_json = "modular_nova/modules/basic_mobs/code/banana_spider.bt.json"
 
 /obj/item/food/deadbanana_spider
 	name = "dead banana spider"
@@ -40,9 +38,12 @@
 	icon_state = "bananaspider_peel"
 	food_reagents = list(/datum/reagent/consumable/nutriment = 3, /datum/reagent/consumable/nutriment/vitamin = 2)
 	foodtypes = GORE | MEAT | RAW
-	grind_results = list(/datum/reagent/blood = 20, /datum/reagent/consumable/liquidgibs = 5)
-	juice_typepath = /datum/reagent/consumable/banana
 
+/obj/item/food/deadbanana_spider/grind_results()
+	return list(/datum/reagent/blood = 20, /datum/reagent/consumable/liquidgibs = 5)
+
+/obj/item/food/deadbanana_spider/juice_typepath()
+	return /datum/reagent/consumable/banana
 
 /obj/item/food/deadbanana_spider/Initialize(mapload)
 	. = ..()

@@ -47,7 +47,7 @@
 	lighting_cutoff_green = 10
 	lighting_cutoff_blue = 20
 
-	damage_coeff = list(BRUTE = 1, BURN = 1, TOX = 1, STAMINA = 0, OXY = 1)
+	physiology = list(STAMINA = 0)
 
 	/// Typepath of the antag datum to add to the demon when applicable
 	var/datum/antagonist/antag_type = null
@@ -69,7 +69,6 @@
 		return // we weren't built for this proc to run
 
 	mind.set_assigned_role(SSjob.get_job_type(/datum/job/slaughter_demon))
-	mind.special_role = ROLE_SLAUGHTER_DEMON
 	mind.add_antag_datum(antag_type)
 
 	SEND_SOUND(src, 'sound/effects/magic/demon_dies.ogg')

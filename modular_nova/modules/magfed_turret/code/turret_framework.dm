@@ -92,22 +92,10 @@
 	return yoink
 
 /obj/item/storage/toolbox/emergency/turret/mag_fed/set_faction(obj/machinery/porta_turret/syndicate/toolbox/mag_fed/turret, mob/user)
-	if(!(user.faction in turret.faction))
-		turret.faction += user.faction
-		turret.allies += REF(user)
+	if(!turret.faction_check_atom(user))
+		APPLY_FACTION_AND_ALLIES_FROM(turret, user)
 
 /obj/item/storage/toolbox/emergency/turret/mag_fed/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
-	if(!is_type_in_list(tool, list(/obj/item/wrench, /obj/item/screwdriver, /obj/item/multitool, /obj/item/toy/crayon/spraycan)))
-		return ITEM_INTERACT_BLOCKING
-	if(!tool.toolspeed)
-		return ITEM_INTERACT_BLOCKING
-
-	return NONE
-
-/obj/item/storage/toolbox/emergency/turret/mag_fed/item_interaction(mob/living/user, obj/item/tool, list/modifiers) // This was changed but not updated???? I guess no one uses the tarkon ones gawd DAHM
-	if(istype(tool, /obj/item/toy/crayon/spraycan))
-		return attackby(tool, user) //This is entirely just so people can use the gagsification for the toy turret.
-
 	if(setting_change && tool.tool_behaviour == TOOL_SCREWDRIVER)
 		if(!tool.use_tool(src, user, 2 SECONDS, volume = 20))
 			return ITEM_INTERACT_BLOCKING
@@ -140,7 +128,7 @@
 		playsound(src, 'sound/items/tools/drill_use.ogg', 80, TRUE, -1)
 		deploy_turret(user, loc)
 		return ITEM_INTERACT_SUCCESS
-	..()
+	return ..()
 
 /obj/item/storage/toolbox/emergency/turret/mag_fed/attack_self(mob/user, modifiers)
 	if(!easy_deploy)
@@ -202,6 +190,7 @@
 	throwforce = 0
 	throw_speed = 3
 	throw_range = 7
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 5, /datum/material/glass = SHEET_MATERIAL_AMOUNT * 2, /datum/material/plasma = SHEET_MATERIAL_AMOUNT, /datum/material/gold = SHEET_MATERIAL_AMOUNT, /datum/material/titanium = HALF_SHEET_MATERIAL_AMOUNT, /datum/material/silver = HALF_SHEET_MATERIAL_AMOUNT)
 	////// the range it can scan at.
 	var/scan_range = 10
 	////// how many turrets it can have. changable incase of better ones wanted.
@@ -350,8 +339,6 @@
 	var/datum/weakref/target_override
 	//////Target Assessment System. Whether or not it's targeting according to flags or even ignoring everyone.
 	var/target_assessment = TURRET_FLAG_SHOOT_EVERYONE
-	//////Ally system.
-	var/allies = list()
 	//////Do we want this to shut up? Mostly for testing and debugging purposes purposes.
 	var/claptrap_moment = TRUE
 	////// Do we want it to eject casings?
@@ -395,6 +382,8 @@
 	if(!mag_box) //If we want to make map-spawned turrets in turret form.
 		var/auto_loader = new mag_box_type
 		mag_box = WEAKREF(auto_loader)
+	if(!raised)
+		INVOKE_ASYNC(src, PROC_REF(popUp))
 	register_context()
 
 /obj/machinery/porta_turret/syndicate/toolbox/mag_fed/update_greyscale()
@@ -435,7 +424,8 @@
 	. = ..()
 	. -= span_notice("You can repair it by <b>left-clicking</b> with a combat wrench.")
 	. -= span_notice("You can fold it by <b>right-clicking</b> with a combat wrench.")
-	if((user.faction in faction) || (REF(user) in allies))
+	if(FAST_FACTION_CHECK(faction, user.get_faction(), null, null, FALSE) || has_ally(user))
+		. += span_notice("Turret integrity is [atom_integrity]/[max_integrity]")
 		. += span_notice("You can unlock it by <b>left-clicking</b> with an <b>id card.</b>")
 		. += span_notice("You can repair it by <b>left-clicking</b> with a <b>wrench.</b>")
 		. += span_notice("You can fold it by <b>right-clicking</b> with a <b>wrench.</b>")
@@ -670,25 +660,19 @@
 
 /obj/machinery/porta_turret/syndicate/toolbox/mag_fed/in_faction(mob/target)
 	if(!faction_targeting)
-		if(REF(target) in allies)
-			return TRUE
-		else
-			return FALSE
+		return has_ally(target)
 
-	for(var/faction1 in faction)
-		if((faction1 in target.faction) || (REF(target) in allies)) // For an Ally System
-			return TRUE
-	return FALSE
+	return FAST_FACTION_CHECK(faction, target.get_faction(), allies, target.allies, FALSE)
+
 
 /// toggles between whether things are inside the ally system
 /obj/machinery/porta_turret/syndicate/toolbox/mag_fed/proc/toggle_ally(mob/living/target) //leave these since it's kinda important to know which is being done.
-	if(REF(target) in allies)
-		allies -= REF(target)
+	if(remove_ally(target))
 		balloon_alert_to_viewers("ally removed!")
 		return
 	else
-		allies += REF(target)
-		balloon_alert_to_viewers("ally designated!")
+		if(add_ally(target))
+			balloon_alert_to_viewers("ally designated!")
 		return
 
 /obj/machinery/porta_turret/syndicate/toolbox/mag_fed/target(atom/movable/target)
@@ -698,7 +682,6 @@
 			return TRUE
 
 	if(target)
-		popUp() //pop the turret up if it's not already up.
 		setDir(get_dir(base, target))//even if you can't shoot, follow the target
 		shootAt(target)
 		return TRUE
@@ -787,7 +770,7 @@
 /obj/machinery/porta_turret/syndicate/toolbox/mag_fed/proc/handle_firing(obj/item/ammo_casing/casing, atom/movable/target)
 	var/obj/projectile/our_projectile = casing.loaded_projectile
 	if(ignore_faction)
-		our_projectile.ignored_factions = (faction + allies)
+		APPLY_FACTION_AND_ALLIES_FROM(our_projectile, src)
 	our_projectile.damage *= turret_damage_multiplier
 	our_projectile.stamina *= turret_damage_multiplier
 
@@ -822,90 +805,84 @@
 
 ////// Operation Handling //////
 
-/obj/machinery/porta_turret/syndicate/toolbox/mag_fed/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers) // This hasn't been changed upstream yet.
+/obj/machinery/porta_turret/syndicate/toolbox/mag_fed/item_interaction(mob/living/user, obj/item/tool, list/modifiers) // This hasn't been changed upstream yet.
 	var/obj/item/storage/toolbox/emergency/turret/mag_fed/auto_loader = mag_box?.resolve()
 	if(isnull(auto_loader))
 		mag_box = null
-	if(attacking_item.type in auto_loader.atom_storage.can_hold)
+	if(tool.type in auto_loader.atom_storage.can_hold)
 		balloon_alert(user, "attempting to load...")
 		if(!do_after(user, 1 SECONDS, src))
 			balloon_alert(user, "failed to load!")
-		insert_mag(attacking_item, user)
-		return
+		insert_mag(tool, user)
+		return ITEM_INTERACT_SUCCESS
 
-	if(istype(attacking_item, /obj/item/card/id))
+	if(istype(tool, /obj/item/card/id))
 		if(!in_faction(user))
 			balloon_alert(user, "access denied!")
-			return
+			return ITEM_INTERACT_BLOCKING
 
 	if(in_faction(user))
-		if(istype(attacking_item, /obj/item/target_designator))
-			var/obj/item/target_designator/controller = attacking_item
+		if(istype(tool, /obj/item/target_designator))
+			var/obj/item/target_designator/controller = tool
 			if(length(controller.linked_turrets) >= controller.turret_limit)
 				balloon_alert(user, "turret limit reached!")
-				return
+				return ITEM_INTERACT_BLOCKING
 			if(linkage) //should help both preventing dual-controlling AND double-linking causing odd issues with ally system
 				balloon_alert(user, "turret already linked!")
-				return
+				return ITEM_INTERACT_BLOCKING
 			linkage = WEAKREF(controller)
 			controller.linked_turrets += src
 			RegisterSignal(controller, COMSIG_QDELETING, PROC_REF(on_qdeleted), TRUE) //True otherwise it causes a runtime for overwriting parent qdeling. Dont know where to go elsewise.
 			balloon_alert(user, "turret linked!")
-			return
+			return ITEM_INTERACT_SUCCESS
 
-	if(attacking_item.tool_behaviour != TOOL_WRENCH)
-		return ..()
+	return ITEM_INTERACT_BLOCKING
 
-	if(!attacking_item.toolspeed)
-		return
-
-	else
-		if(atom_integrity == max_integrity)
-			if(!claptrap_moment)
-				balloon_alert(user, "already repaired!")
-			return
-
+/obj/machinery/porta_turret/syndicate/toolbox/mag_fed/wrench_act(mob/living/user, obj/item/attacking_item)
+	if(atom_integrity == max_integrity)
 		if(!claptrap_moment)
-			balloon_alert(user, "repairing...")
-		while(atom_integrity != max_integrity)
-			if(!attacking_item.use_tool(src, user, 2 SECONDS, volume = 20))
-				return
+			balloon_alert(user, "already repaired!")
+		return ITEM_INTERACT_SUCCESS
 
-			repair_damage(25)
+	if(!claptrap_moment)
+		balloon_alert(user, "repairing...")
+	while(atom_integrity != max_integrity)
+		if(!attacking_item.use_tool(src, user, 2 SECONDS, volume = 20))
+			return ITEM_INTERACT_FAILURE
 
-		if(!claptrap_moment)
-			balloon_alert(user, "repaired!")
+		repair_damage(25)
 
-/obj/machinery/porta_turret/syndicate/toolbox/mag_fed/attackby_secondary(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers) //IM TIRED OF MISMATCHED VAR NAMES. IT'S ATTACK_ITEM ON MAIN, WHY WEAPON HERE?
-	. = ..()
-	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
-		return
+	if(!claptrap_moment)
+		balloon_alert(user, "repaired!")
+	return ITEM_INTERACT_SUCCESS
+
+/obj/machinery/porta_turret/syndicate/toolbox/mag_fed/item_interaction_secondary(mob/living/user, obj/item/tool, list/modifiers)
 	if(in_faction(user))
-		if(istype(attacking_item, /obj/item/target_designator))
+		if(istype(tool, /obj/item/target_designator))
 			var/obj/item/target_designator/owner_check = linkage?.resolve()
-			if(attacking_item != owner_check) //cant unlink if not the same one
+			if(tool != owner_check) //cant unlink if not the same one
 				balloon_alert(user, "turret not linked!")
-				return
-			var/obj/item/target_designator/controller = attacking_item
+				return ITEM_INTERACT_BLOCKING
+			var/obj/item/target_designator/controller = tool
 			linkage = null
 			controller.linked_turrets -= src
 			balloon_alert(user, "turret unlinked!")
-			return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+			return ITEM_INTERACT_SUCCESS
 
-	if(attacking_item.tool_behaviour != TOOL_WRENCH)
-		return SECONDARY_ATTACK_CALL_NORMAL
+	if(tool.tool_behaviour != TOOL_WRENCH)
+		return NONE
 
-	if(!attacking_item.toolspeed)
-		return SECONDARY_ATTACK_CALL_NORMAL
+	if(!tool.toolspeed)
+		return NONE
 
 	if(!claptrap_moment)
 		balloon_alert(user, "deconstructing...")
-	if(!attacking_item.use_tool(src, user, 5 SECONDS, volume = 20))
-		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	if(!tool.use_tool(src, user, 5 SECONDS, volume = 20))
+		return ITEM_INTERACT_BLOCKING
 
-	attacking_item.play_tool_sound(src, 50)
+	tool.play_tool_sound(src, 50)
 	deconstruct(TRUE)
-	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	return ITEM_INTERACT_SUCCESS
 
 /obj/machinery/porta_turret/syndicate/toolbox/mag_fed/click_alt_secondary(mob/user)
 	. = ..()

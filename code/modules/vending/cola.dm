@@ -54,6 +54,15 @@
 		/datum/reagent/consumable/ethanol/neurotoxin = 1,
 		)
 
+/obj/machinery/vending/cola/Initialize(mapload)
+	. = ..()
+	if(!mapload || !is_station_level(z) || !HAS_TRAIT(SSstation, STATION_TRAIT_VENDING_SHORTAGE))
+		return
+
+	for(var/datum/data/vending_product/product_record as anything in product_records + coin_records + hidden_records)
+		product_record.amount = 0
+		credits_contained += rand(1, 5)
+
 /obj/machinery/vending/cola/on_dispense(obj/item/vended_item, dispense_returned = FALSE)
 	// Only apply to newly dispensed items
 	if(dispense_returned)
@@ -81,10 +90,12 @@
 	icon_state = "Cola_Machine"
 	light_mask = "cola-light-mask"
 	light_color = COLOR_MODERATE_BLUE
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/black
 	icon_state = "cola_black"
 	light_mask = "cola-light-mask"
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/red
 	icon_state = "red_cola"
@@ -93,6 +104,7 @@
 	product_slogans = "Cola in space!"
 	light_mask = "red_cola-light-mask"
 	light_color = COLOR_DARK_RED
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/space_up
 	icon_state = "space_up"
@@ -101,6 +113,7 @@
 	product_slogans = "Space-up! Like a hull breach in your mouth."
 	light_mask = "space_up-light-mask"
 	light_color = COLOR_DARK_MODERATE_LIME_GREEN
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/starkist
 	icon_state = "starkist"
@@ -110,12 +123,14 @@
 	panel_type = "panel7"
 	light_mask = "starkist-light-mask"
 	light_color = COLOR_LIGHT_ORANGE
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/sodie
 	icon_state = "soda"
 	panel_type = "panel7"
 	light_mask = "soda-light-mask"
 	light_color = COLOR_WHITE
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/pwr_game
 	icon_state = "pwr_game"
@@ -124,6 +139,7 @@
 	product_slogans = "The POWER that gamers crave! PWR GAME!"
 	light_mask = "pwr_game-light-mask"
 	light_color = COLOR_STRONG_VIOLET
+	allow_custom = FALSE
 
 /obj/machinery/vending/cola/shamblers
 	name = "\improper Shambler's Vendor"
@@ -144,7 +160,13 @@
 	product_slogans = "~Shake me up some of that Shambler's Juice!~"
 	product_ads = "Refreshing!;Thirsty for DNA? Satiate your craving!;Over 1 trillion souls drank!;Made with real DNA!;The hivemind demands your thirst!;Drink up!;Absorb your thirst."
 	light_mask = "shamblers-light-mask"
+	refill_canister = /obj/item/vending_refill/cola/shamblers
 	light_color = COLOR_MOSTLY_PURE_PINK
+
+
+/obj/item/vending_refill/cola/shamblers
+	machine_name = "Shambler's Vendor"
+	icon_state = "refill_shamblers"
 
 /obj/machinery/vending/cola/shamblers/Initialize(mapload)
 	. = ..()

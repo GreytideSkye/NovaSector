@@ -568,7 +568,7 @@ em {
 }
 
 .green {
-  color: hsl(132.8, 93.4%, 29.6%);
+  color: hsl(132.9, 100%, 50.6%);
 }
 
 .grey {
@@ -1007,6 +1007,13 @@ em {
   font-size: 125%;
 }
 
+.policy {
+  text-align: center;
+  font-size: 125%;
+  color: hsl(276, 70%, 52%);
+  font-style: italic;
+}
+
 .abductor {
   color: hsl(300, 96%, 38.8%);
   font-style: italic;
@@ -1024,7 +1031,9 @@ em {
 }
 
 .drone {
-  color: hsl(60, 0.8%, 51.4%);
+  color: hsl(60, 100%, 50%);
+  background-color: hsl(287 62% 36%);
+  font-style: italic;
 }
 
 .monkey {
@@ -1040,12 +1049,18 @@ em {
 }
 
 .upside_down {
-  display: inline;
-  -moz-transform: scale(-1, -1);
-  -webkit-transform: scale(-1, -1);
-  -o-transform: scale(-1, -1);
-  -ms-transform: scale(-1, -1);
-  transform: scale(-1, -1);
+  transform: rotate(180deg);
+  display: inline-block;
+}
+
+.mansus {
+  color: #0d9b00;
+  text-shadow: 0 0 6px #0d9b00;
+}
+
+.cyan {
+  color: #bde0dc;
+  text-shadow: 0 0 6px #bde0dc;
 }
 
 .connectionClosed,
@@ -1431,6 +1446,12 @@ $border-width-px: $border-width * 1px;
 .rlooc {
   color: #b09448;
 }
+.subtle {
+  color: #abc6ec;
+}
+.subtler {
+  color: #e2c1ff;
+}
 
 .userlove {
   color: #ff1493;
@@ -1469,8 +1490,13 @@ $border-width-px: $border-width * 1px;
   font-weight: bold;
 }
 
-.cyan {
+.cyan_nova {
   color: #0ea1e6;
+  font-weight: bold;
+}
+
+.horizonblue {
+  color: #7ca2b8;
   font-weight: bold;
 }
 
@@ -1501,5 +1527,35 @@ $border-width-px: $border-width * 1px;
   color: #6e001a;
   font-weight: bold;
   font-style: italic;
+}
+
+// Headshot thumbnail in the examine block, expands on hover
+.examine_headshot {
+  position: relative;
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0.25em 0;
+}
+
+.examine_headshot img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 1px solid hsla(220, 40%, 75%, 0.35);
+  border-radius: 2px;
+  image-rendering: auto;
+  transition:
+    width 120ms ease-out,
+    height 120ms ease-out;
+}
+
+.examine_headshot:hover img {
+  width: 250px;
+  height: 250px;
+  z-index: 50;
 }
 // NOVA EDIT ADDITION END

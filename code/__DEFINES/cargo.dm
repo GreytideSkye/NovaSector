@@ -41,6 +41,28 @@
 ///Used by coupons to define that they're cursed
 #define COUPON_OMEN "omen"
 
+// Supply pack flags determining ordering properties
+/// Order is literally never visible, presumably it's an abstract type or something
+#define ORDER_INVISIBLE (1 << 0)
+/// Only orderable on emagged consoles
+#define ORDER_EMAG_ONLY (1 << 1)
+/// Only orderable on consoles with doctored boards
+#define ORDER_CONTRABAND (1 << 2)
+/// Can only be ordered privately, can use discount coupons, and arrives in a bag instead of a crate
+#define ORDER_GOODY (1 << 3)
+/// Can only be ordered via the express order console
+#define ORDER_POD_ONLY (1 << 4)
+/// Can only be ordered if the following flag is also enabled, for conditionally provided options
+#define ORDER_SPECIAL (1 << 5)
+/// If present then a special order can be ordered
+#define ORDER_SPECIAL_ENABLED (1 << 6)
+/// Unavailable to departmental order consoles even if it is in an appropriate category
+#define ORDER_NOT_DEPARTMENTAL (1 << 7)
+/// This will notify admins when it is purchased
+#define ORDER_DANGEROUS (1 << 8)
+/// This is set when something is created by an admin to make sure its contents is also marked as such
+#define ORDER_ADMIN_SPAWNED (1 << 9)
+
 ///Discount categories for coupons. This one is for anything that isn't discountable.
 #define SUPPLY_PACK_NOT_DISCOUNTABLE null
 ///Discount category for the standard stuff, mostly goodies.
@@ -62,7 +84,7 @@
 /// Multiplies the logarithmic value calculating the free crate cooldown
 #define DEPARTMENTAL_ORDER_COOLDOWN_COEFFICIENT 60
 /// Used for the power of the logarithmic value for the free crate cooldown
-#define DEPARTMENTAL_ORDER_COOLDOWN_EXPONENT 2.2
+#define DEPARTMENTAL_ORDER_COOLDOWN_EXPONENT 2 // NOVA EDIT CHANGE - ORIGINAL : 2.2
 
 //At 320 it's 475 credits, at 1400 it's 669 credits,  at 3000 (around gun crates) its 778, at 8000 (hat crate) it's 925 credits, at 9000 (expensive atmos cans) it's 943 credits, and at the 20k crate it's 1070 credits.
 
@@ -70,3 +92,6 @@
 #define DEPARTMENTAL_ORDER_REWARD_COEFFICIENT 120
 /// Used for the power of the logarithmic value for the free crate delivery reward
 #define DEPARTMENTAL_ORDER_REWARD_EXPONENT 1.5
+
+/// How many global bounties are spawned at minimum when refreshing the list?
+#define CIV_BOUNTY_BASELINE 5

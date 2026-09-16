@@ -23,13 +23,13 @@
 	///current shuttle mode
 	var/mode = SHUTTLE_IDLE
 	///time spent in transit (deciseconds). Should not be lower then 10 seconds without editing the animation of the hyperspace ripples.
-	var/callTime = 100
+	var/callTime = 10 SECONDS
 	/// time spent "starting the engines". Also rate limits how often we try to reserve transit space if its ever full of transiting shuttles.
-	var/ignitionTime = 55
+	var/ignitionTime = 5.5 SECONDS
 	/// time spent after arrival before being able to begin ignition
-	var/rechargeTime = 0
+	var/rechargeTime = 0 SECONDS
 	/// time spent after transit 'landing' before actually arriving
-	var/prearrivalTime = 0
+	var/prearrivalTime = 0 SECONDS
 
 	/// The direction the shuttle prefers to travel in, ie what direction the animation will cause it to appear to be traveling in
 	var/preferred_direction = NORTH
@@ -97,6 +97,8 @@
 	unregister()
 	destination = null
 	previous = null
+	for(var/obj/machinery/power/shuttle_engine/engine as anything in engine_list)
+		engine.unsync_ship()
 	if(!QDELETED(assigned_transit))
 		qdel(assigned_transit, force = TRUE)
 		assigned_transit = null
@@ -515,17 +517,9 @@
 /obj/docking_port/mobile/proc/parallax_slowdown()
 	for(var/place in shuttle_areas)
 		var/area/shuttle/shuttle_area = place
-		shuttle_area.parallax_movedir = FALSE
-	if(assigned_transit?.assigned_area)
-		assigned_transit.assigned_area.parallax_movedir = FALSE
-	var/list/L0 = return_ordered_turfs(x, y, z, dir)
-	for (var/thing in L0)
-		var/turf/T = thing
-		if(!T || !istype(T.loc, area_type))
-			continue
-		for (var/atom/movable/movable as anything in T)
-			if (movable.client_mobs_in_contents)
-				movable.update_parallax_contents()
+		shuttle_area.set_parallax_movedir(NONE)
+
+	assigned_transit?.assigned_area?.set_parallax_movedir(NONE)
 
 /obj/docking_port/mobile/proc/check_transit_zone()
 	if(assigned_transit)

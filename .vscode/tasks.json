@@ -23,10 +23,18 @@
 		{
 			"type": "process",
 			"command": "tools/build/build.sh",
-			"args": ["-DLOWMEMORYMODE"],
+			"args": [
+				"-DSKIP_LAVALAND",
+				"-DSKIP_SPACE_LEVELS",
+				"-DFORCE_MAP=\"runtimestation\""
+			],
 			"windows": {
 				"command": ".\\tools\\build\\build.bat",
-				"args": ["-DLOWMEMORYMODE"]
+				"args": [
+					"-DSKIP_LAVALAND",
+					"-DSKIP_SPACE_LEVELS",
+					"-DFORCE_MAP=\"runtimestation\""
+				]
 			},
 			"options": {
 				"env": {
@@ -39,6 +47,38 @@
 			},
 			"dependsOn": "dm: reparse",
 			"label": "Build All (low memory mode)"
+		},
+		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"args": [
+				"-DSKIP_LAVALAND",
+				"-DSKIP_SPACE_LEVELS",
+				"-DAUTOSTART_GAME",
+				"-DMINIMAL_CENTCOM",
+				"-DFORCE_MAP=\"runtimestation_minimal\""
+			],
+			"windows": {
+				"command": ".\\tools\\build\\build.bat",
+				"args": [
+					"-DSKIP_LAVALAND",
+					"-DSKIP_SPACE_LEVELS",
+					"-DAUTOSTART_GAME",
+					"-DMINIMAL_CENTCOM",
+					"-DFORCE_MAP=\"runtimestation_minimal\""
+				]
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All (absolute minimum)"
 		},
 		{
 			"type": "process",
@@ -74,20 +114,24 @@
 			"type": "process",
 			"command": "tools/build/build.sh",
 			"args": [
-				"-DLOWMEMORYMODE",
+				"-DSKIP_LAVALAND",
+				"-DSKIP_SPACE_LEVELS",
 				"-DTESTING",
 				"-DREAGENTS_TESTING",
 				"-DTIMER_DEBUG",
-				"-DREFERENCE_DOING_IT_LIVE"
+				"-DREFERENCE_DOING_IT_LIVE",
+				"-DFORCE_MAP=\"runtimestation\""
 			],
 			"windows": {
 				"command": ".\\tools\\build\\build.bat",
 				"args": [
-					"-DLOWMEMORYMODE",
+					"-DSKIP_LAVALAND",
+					"-DSKIP_SPACE_LEVELS",
 					"-DTESTING",
 					"-DREAGENTS_TESTING",
 					"-DTIMER_DEBUG",
-					"-DREFERENCE_DOING_IT_LIVE"
+					"-DREFERENCE_DOING_IT_LIVE",
+					"-DFORCE_MAP=\"runtimestation\""
 				]
 			},
 			"options": {

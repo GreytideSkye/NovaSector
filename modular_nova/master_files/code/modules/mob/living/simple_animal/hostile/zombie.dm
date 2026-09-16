@@ -1,9 +1,3 @@
-/mob/living/basic/zombie
-	var/no_corpse = FALSE
-
-/mob/living/basic/zombie/nocorpse
-	no_corpse = TRUE
-
 /mob/living/basic/zombie/cheesezombie
 	name = "Cheese Zombie"
 	desc = "Oh God it stinks!!"
@@ -16,5 +10,8 @@
 
 /mob/living/basic/zombie/cheesezombie/Initialize(mapload)
 	. = ..()
-	AddElement(/datum/element/death_drops, string_list(list(/obj/effect/gibspawner/human)))
-
+	icon = initial(icon)
+	icon_state = initial(icon_state)
+	icon_living = initial(icon_living)
+	cut_overlays()
+	AddElement(/datum/element/death_drops, string_list(list(/mob/living/basic/mouse/rat))) //the pilot of the cheese mech

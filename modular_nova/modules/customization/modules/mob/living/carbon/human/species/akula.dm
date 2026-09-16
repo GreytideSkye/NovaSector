@@ -21,6 +21,8 @@
 	mutantlungs = /obj/item/organ/lungs/carp/akula
 	mutanttongue = /obj/item/organ/tongue/carp/akula
 	mutanteyes = /obj/item/organ/eyes/akula
+	mutant_organs = list(/obj/item/organ/fangs/carp/akula)
+	meat = /obj/item/food/fishmeat/human
 	inherent_traits = list(
 		TRAIT_ADVANCEDTOOLUSER,
 		TRAIT_CAN_STRIP,
@@ -30,7 +32,6 @@
 		TRAIT_MUTANT_COLORS,
 	)
 	inherent_biotypes = MOB_ORGANIC|MOB_HUMANOID
-	mutant_bodyparts = list()
 	payday_modifier = 1.0
 	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | ERT_SPAWN | RACE_SWAP | SLIME_EXTRACT
 	bodypart_overrides = list(
@@ -46,9 +47,9 @@
 
 /datum/species/akula/get_default_mutant_bodyparts()
 	return list(
-		"ears" = list("None", FALSE),
-		"tail" = list("Akula", TRUE),
-		"legs" = list("Normal Legs", FALSE),
+		FEATURE_EARS = MUTPART_BLUEPRINT(SPRITE_ACCESSORY_NONE, is_randomizable = FALSE),
+		FEATURE_TAIL = MUTPART_BLUEPRINT("Akula", is_randomizable = TRUE),
+		FEATURE_LEGS = MUTPART_BLUEPRINT(NORMAL_LEGS, is_randomizable = FALSE, is_feature = TRUE),
 	)
 
 /datum/species/akula/get_species_description()
@@ -136,20 +137,20 @@
 			main_color = "#DB35DE"
 			secondary_color = "#BE3AFE"
 			tertiary_color = "#F5E2EE"
-	features["mcolor"] = main_color
-	features["mcolor2"] = secondary_color
-	features["mcolor3"] = tertiary_color
+	features[FEATURE_MUTANT_COLOR] = main_color
+	features[FEATURE_MUTANT_COLOR_TWO] = secondary_color
+	features[FEATURE_MUTANT_COLOR_THREE] = tertiary_color
 	return features
 
 /datum/species/akula/prepare_human_for_preview(mob/living/carbon/human/akula)
 	var/main_color = "#1CD3E5"
 	var/secondary_color = "#6AF1D6"
 	var/tertiary_color = "#CCF6E2"
-	akula.dna.features["mcolor"] = main_color
-	akula.dna.features["mcolor2"] = secondary_color
-	akula.dna.features["mcolor3"] = tertiary_color
-	akula.dna.mutant_bodyparts["tail"] = list(MUTANT_INDEX_NAME = "Akula", MUTANT_INDEX_COLOR_LIST = list(main_color, secondary_color, tertiary_color))
-	akula.dna.features["legs"] = "Normal Legs"
+	akula.dna.features[FEATURE_MUTANT_COLOR] = main_color
+	akula.dna.features[FEATURE_MUTANT_COLOR_TWO] = secondary_color
+	akula.dna.features[FEATURE_MUTANT_COLOR_THREE] = tertiary_color
+	akula.dna.mutant_bodyparts[FEATURE_TAIL] = build_mutant_part("Akula", list(main_color, secondary_color, tertiary_color))
+	akula.dna.features[FEATURE_LEGS] = NORMAL_LEGS
 	regenerate_organs(akula, src, visual_only = TRUE)
 	akula.update_body(TRUE)
 
@@ -170,7 +171,7 @@
 // set bonus
 /datum/status_effect/organ_set_bonus/carp/akula
 	id = "organ_set_bonus_carp_akula"
-	limb_overlay = null // no carpskin
+	limb_texture = null // no carpskin
 
 //Eyes
 /obj/item/organ/eyes/akula
@@ -209,15 +210,27 @@
 	RemoveElement(/datum/element/organ_set_bonus, /datum/status_effect/organ_set_bonus/carp)
 	AddElement(/datum/element/organ_set_bonus, /datum/status_effect/organ_set_bonus/carp/akula)
 
-/obj/item/organ/tongue/carp/akula/on_mob_insert(mob/living/carbon/tongue_owner, special, movement_flags)
+//Fangs
+// Akula used to get their bite from /obj/item/organ/tongue/carp before TG split fangs out into their own organ,
+// so they get their own carp fangs to keep it, and to stay at the 5 organs the carp set bonus now asks for.
+/obj/item/organ/fangs/carp/akula
+	name = "azulean fangs"
+	desc = "A set of sharp, backward-curving teeth. Rather more orderly than a space carp's."
+
+/obj/item/organ/fangs/carp/akula/Initialize(mapload)
 	. = ..()
-	if(!ishuman(tongue_owner))
+	RemoveElement(/datum/element/organ_set_bonus, /datum/status_effect/organ_set_bonus/carp)
+	AddElement(/datum/element/organ_set_bonus, /datum/status_effect/organ_set_bonus/carp/akula)
+
+/obj/item/organ/fangs/carp/akula/on_mob_insert(mob/living/carbon/fangs_owner, special, movement_flags)
+	. = ..()
+	if(!ishuman(fangs_owner))
 		return
-	var/mob/living/carbon/human/human_receiver = tongue_owner
+	var/mob/living/carbon/human/human_receiver = fangs_owner
 	if(!human_receiver.can_mutate())
 		return
 	var/datum/species/rec_species = human_receiver.dna.species
-	rec_species.update_no_equip_flags(tongue_owner, initial(rec_species.no_equip_flags))
+	rec_species.update_no_equip_flags(fangs_owner, initial(rec_species.no_equip_flags))
 
 //Lungs
 /obj/item/organ/lungs/carp/akula
@@ -257,12 +270,12 @@
 	// Relieve the negative moodlet
 	akula.clear_mood_event("dry_skin")
 	// The timer which will initiate above 10 wet_stacks, and call dried() once the timer runs out
-	dry_up_timer = addtimer(CALLBACK(src, PROC_REF(dried), akula), DRY_UP_TIME, TIMER_UNIQUE | TIMER_STOPPABLE)
+	dry_up_timer = addtimer(CALLBACK(src, PROC_REF(dried), akula), DRY_UP_TIME, TIMER_UNIQUE | TIMER_STOPPABLE | TIMER_DELETE_ME)
 
 /// This proc is called after a mob with the TRAIT_SLIPPERY has its related timer run out
 /datum/species/akula/proc/dried(mob/living/carbon/akula)
 	// A moodlet which will not go away until the user gets wet
-	akula.add_mood_event("dry_skin", /datum/mood_event/dry_skin)
+	akula?.add_mood_event("dry_skin", /datum/mood_event/dry_skin)
 
 /// A simple overwrite which calls parent to listen to wet_stacks
 /datum/status_effect/fire_handler/wet_stacks/tick(delta_time)

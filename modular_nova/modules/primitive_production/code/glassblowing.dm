@@ -110,6 +110,7 @@
 	tool_behaviour = TOOL_BLOWROD
 	/// Whether the rod is in use currently; will try to prevent many other actions on it
 	var/in_use = FALSE
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 5)
 	/// A ref to the glass item being blown
 	var/datum/weakref/glass_ref
 
@@ -164,32 +165,32 @@
 	icon_state = "blow_pipe_full"
 	return ITEM_INTERACT_SUCCESS
 
-/obj/item/glassblowing/blowing_rod/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
+/obj/item/glassblowing/blowing_rod/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
 	var/actioning_speed = user.mind.get_skill_modifier(/datum/skill/production, SKILL_SPEED_MODIFIER) * DEFAULT_TIMED
 	var/obj/item/glassblowing/molten_glass/glass = glass_ref?.resolve()
 
-	if(istype(attacking_item, /obj/item/glassblowing/molten_glass))
+	if(istype(tool, /obj/item/glassblowing/molten_glass))
 		if(glass)
 			to_chat(user, span_warning("[src] already has some glass on it still!"))
-			return
-		if(!user.transferItemToLoc(attacking_item, src))
-			return
-		glass_ref = WEAKREF(attacking_item)
-		to_chat(user, span_notice("[src] picks up [attacking_item]."))
+			return ITEM_INTERACT_BLOCKING
+		if(!user.transferItemToLoc(tool, src))
+			return ITEM_INTERACT_BLOCKING
+		glass_ref = WEAKREF(tool)
+		to_chat(user, span_notice("[src] picks up [tool]."))
 		icon_state = "blow_pipe_full"
-		return
+		return ITEM_INTERACT_SUCCESS
 
-	if(istype(attacking_item, /obj/item/glassblowing/paddle))
+	if(istype(tool, /obj/item/glassblowing/paddle))
 		do_glass_step(STEP_PADDLE, user, actioning_speed, glass)
-		return
+		return ITEM_INTERACT_SUCCESS
 
-	if(istype(attacking_item, /obj/item/glassblowing/shears))
+	if(istype(tool, /obj/item/glassblowing/shears))
 		do_glass_step(STEP_SHEAR, user, actioning_speed, glass)
-		return
+		return ITEM_INTERACT_SUCCESS
 
-	if(istype(attacking_item, /obj/item/glassblowing/jacks))
+	if(istype(tool, /obj/item/glassblowing/jacks))
 		do_glass_step(STEP_JACKS, user, actioning_speed, glass)
-		return
+		return ITEM_INTERACT_SUCCESS
 
 	return ..()
 
@@ -490,6 +491,7 @@
 	name = "jacks"
 	desc = "A tool that helps shape glass during the art process."
 	icon_state = "jacks"
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 5)
 
 /datum/crafting_recipe/glassblowing_recipe/glass_jack
 	name = "Glass-blowing Jacks"
@@ -499,6 +501,7 @@
 	name = "paddle"
 	desc = "A tool that helps shape glass during the art process."
 	icon_state = "paddle"
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 5)
 
 /datum/crafting_recipe/glassblowing_recipe/glass_paddle
 	name = "Glass-blowing Paddle"
@@ -508,6 +511,7 @@
 	name = "shears"
 	desc = "A tool that helps shape glass during the art process."
 	icon_state = "shears"
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 5)
 
 /datum/crafting_recipe/glassblowing_recipe/glass_shears
 	name = "Glass-blowing Shears"
@@ -518,16 +522,17 @@
 	desc = "A tool that helps shape glass during the art process."
 	icon_state = "metal_cup_empty"
 	var/has_sand = FALSE
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 5)
 
 /datum/crafting_recipe/glassblowing_recipe/glass_metal_cup
 	name = "Glass-blowing Metal Cup"
 	result = /obj/item/glassblowing/metal_cup
 
-/obj/item/glassblowing/metal_cup/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
-	if(istype(attacking_item, /obj/item/stack/ore/glass))
-		var/obj/item/stack/ore/glass/glass_obj = attacking_item
+/obj/item/glassblowing/metal_cup/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	if(istype(tool, /obj/item/stack/ore/glass))
+		var/obj/item/stack/ore/glass/glass_obj = tool
 		if(!glass_obj.use(1))
-			return
+			return ITEM_INTERACT_BLOCKING
 		has_sand = TRUE
 		icon_state = "metal_cup_full"
 	return ..()

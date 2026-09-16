@@ -1,4 +1,4 @@
-/obj/item/organ/tongue/copy_traits_from(obj/item/organ/tongue/old_tongue, mob/living/carbon/organ_receiver, copy_actions = FALSE)
+/obj/item/organ/tongue/copy_traits_from(obj/item/organ/tongue/old_tongue, mob/living/carbon/organ_receiver, copy_actions = TRUE)
 	. = ..()
 	// make sure we get food preferences too, because those are now tied to tongues for some reason
 	liked_foodtypes = old_tongue.liked_foodtypes
@@ -88,7 +88,7 @@
 	taste_sensitivity = 25 // not as good as an organic tongue
 	liked_foodtypes = NONE
 	disliked_foodtypes = NONE
-	organ_traits = list(TRAIT_SILICON_EMOTES_ALLOWED)
+	organ_traits = list(TRAIT_SILICON_EMOTES_ALLOWED, TRAIT_SPEAKS_CLEARLY)
 	voice_filter = "alimiter=0.9,acompressor=threshold=0.2:ratio=20:attack=10:release=50:makeup=2,highpass=f=1000"
 
 /obj/item/organ/tongue/lizard/robot/can_speak_language(language)
@@ -109,6 +109,7 @@
 	liked_foodtypes = NONE
 	disliked_foodtypes = NONE
 	modifies_speech = TRUE
+	custom_materials = list(/datum/material/iron = SMALL_MATERIAL_AMOUNT * 2, /datum/material/glass = SMALL_MATERIAL_AMOUNT * 2, /datum/material/silver = SMALL_MATERIAL_AMOUNT * 2)
 
 /obj/item/organ/tongue/cybernetic
 	name = "cybernetic tongue"
@@ -122,12 +123,16 @@
 	liked_foodtypes = NONE
 	disliked_foodtypes = NONE
 	toxic_foodtypes = NONE
+	custom_materials = list(/datum/material/iron = SMALL_MATERIAL_AMOUNT * 2, /datum/material/glass = SMALL_MATERIAL_AMOUNT * 2, /datum/material/silver = SMALL_MATERIAL_AMOUNT * 2)
 
 /obj/item/organ/tongue/vox
 	name = "vox tongue"
 	desc = "A fleshy muscle mostly used for skreeing."
 	say_mod = "skrees"
 	liked_foodtypes = MEAT | FRIED
+	emote_sounds = list(
+		/datum/emote/living/scream::key = 'modular_nova/modules/emotes/sound/emotes/voxscream.ogg',
+	)
 
 /obj/item/organ/tongue/dwarven
 	name = "dwarven tongue"
@@ -151,6 +156,9 @@
 	liked_foodtypes = GROSS | RAW | TOXIC | GORE
 	disliked_foodtypes = CLOTH | GRAIN | FRIED
 	toxic_foodtypes = DAIRY
+	emote_sounds = list(
+		/datum/emote/living/scream::key = 'sound/mobs/humanoids/moth/scream_moth.ogg',
+	)
 
 /obj/item/organ/tongue/xeno_hybrid
 	name = "alien tongue"
@@ -159,6 +167,11 @@
 	say_mod = "hisses"
 	taste_sensitivity = 10
 	liked_foodtypes = MEAT
+	emote_sounds = list(
+		/datum/emote/living/deathgasp::key = 'sound/mobs/non-humanoids/hiss/hiss6.ogg',
+		/datum/emote/living/scream::key = 'sound/mobs/non-humanoids/hiss/hiss6.ogg',
+		/datum/emote/living/carbon/hiss::key = SFX_HISS,
+	)
 
 /obj/item/organ/tongue/xeno_hybrid/Initialize(mapload)
 	. = ..()

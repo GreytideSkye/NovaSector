@@ -210,7 +210,7 @@
 	current_charge -= charges_drained
 	return TRUE
 
-/datum/artifact_effect/process(seconds_per_tick, times_fired)
+/datum/artifact_effect/process(seconds_per_tick)
 	current_charge = min(current_charge + recharge_speed, maximum_charges)
 	if(release_method == ARTIFACT_EFFECT_AURA)
 		do_effect_aura(seconds_per_tick)
@@ -289,9 +289,9 @@
 		else if (istype(checkpart, /obj/item/bodypart/head))
 			userhead = checkpart
 	// use biohazard suits!
-	if(userchest && human_mob.check_armor(userchest, BIO) >= 85)
+	if(userchest && human_mob.get_worn_bodypart_armor_value(userchest, BIO) >= 85)
 		protection += 0.5
-	if(userhead && human_mob.check_armor(userhead, BIO) >= 85)
+	if(userhead && human_mob.get_worn_bodypart_armor_value(userhead, BIO) >= 85)
 		protection += 0.3
 	// latex gloves and science goggles also give a bit of bonus protection
 	if(istype(human_mob.gloves, /obj/item/clothing/gloves/latex))

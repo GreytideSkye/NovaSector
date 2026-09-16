@@ -21,6 +21,7 @@
 
 /datum/crafting_recipe/reclaimer_c20r
 	name = "NT20 to rC-20 'Reclaimer' Conversion"
+	crafting_flags = parent_type::crafting_flags | CRAFT_COLLECT_REQUIREMENTS
 	desc = "Unlike you, I have no physical or social restraints. The candles burn out for you; I am free."
 	result = /obj/item/gun/ballistic/automatic/c20r/reclaimed/empty
 	reqs = list(
@@ -28,8 +29,8 @@
 		/obj/item/crafting_conversion_kit/reclaimer_c20r = 1
 	)
 	steps = list(
-		"Remove the NT20's magazine",
-		"Clear the NT20's chamber"
+		"Remove the magazine",
+		"Clear the chamber"
 	)
 	tool_behaviors = list(TOOL_SCREWDRIVER)
 	time = 15 SECONDS
@@ -58,18 +59,19 @@
 /obj/item/storage/toolbox/guncase/traitor/durandal_parts/Initialize(mapload)
 	. = ..()
 	AddElement(/datum/element/manufacturer_examine, COMPANY_SCARBOROUGH)
-
-/obj/item/storage/toolbox/guncase/traitor/durandal_parts/examine_more(mob/user)
-	. = ..()
-	. += "<i>Scarborough Arms's 'DURANDAL' line of parts kits are designed for the discerning customer who needs \
+	AddElement(/datum/element/examine_lore, \
+		lore_hint = span_notice("You can [EXAMINE_HINT("look closer")] to learn a little more about [src]."), \
+		lore = "Scarborough Arms's 'DURANDAL' line of parts kits are designed for the discerning customer who needs \
 		every ounce of performance they can get out of their tools of rampant violence. The rumors that the kits are \
 		designed with the assistance of an AI that's either missing ethical limiters or has independently subverted them \
-		are probably unfounded.<br><br>\
+		are probably unfounded.<br>\
+		<br>\
 		\"When the count sees it never will be broke, <br>\
 		Then to himself right softly he makes moan; <br>\
 		'Ah, Durandal, fair, hallowed, and devote, <br>\
 		What store of relics lies in thy hilt of gold!\"<br>\
-		- The Song of Roland, translated by Dorothy Sayers</i>"
-	if(lore_blurb)
-		. += "<br><i>[lore_blurb]</i>"
+		- The Song of Roland, translated by Dorothy Sayers.<br>\
+		<br>\
+		[lore_blurb]" \
+	)
 

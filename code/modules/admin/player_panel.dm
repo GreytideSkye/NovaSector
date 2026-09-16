@@ -228,7 +228,7 @@
 			var/color = "#e6e6e6"
 			if(i%2 == 0)
 				color = "#f2f2f2"
-			var/is_antagonist = is_special_character(M, allow_fake_antags = TRUE)
+			var/is_antagonist = M.is_antag(NONE)
 
 			var/M_job = ""
 
@@ -237,7 +237,7 @@
 				if(iscarbon(M)) //Carbon stuff
 					if(ishuman(M) && M.job)
 						M_job = M.job
-					else if(ismonkey(M))
+					else if(HAS_TRAIT(M, TRAIT_LESSER_HUMANOID))
 						M_job = "Monkey"
 					else if(isalien(M)) //aliens
 						if(islarva(M))

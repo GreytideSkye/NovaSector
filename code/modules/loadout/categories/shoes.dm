@@ -9,10 +9,14 @@
 	abstract_type = /datum/loadout_item/shoes
 
 /datum/loadout_item/shoes/insert_path_into_outfit(datum/outfit/outfit, mob/living/carbon/human/equipper, visuals_only = FALSE)
+	// This prevents clown shoes from being destroyed, for such would be SACRILEGE.
+	if(istype(outfit, /datum/outfit/job/clown))
+		return ..() // Parent calling puts them into the clown's backpack (as a test of character).
+
 	outfit.shoes = item_path
 /* // NOVA EDIT REMOVAL START
 /datum/loadout_item/shoes/sneakers
-	name = "Sneakers (Colourable)"
+	name = "Sneakers"
 	item_path = /obj/item/clothing/shoes/sneakers
 */ // NOVA EDIT REMOVAL END
 /datum/loadout_item/shoes/sandals_laced
@@ -42,3 +46,7 @@
 /datum/loadout_item/shoes/glow_shoes
 	name = "Shoes (Glowing, Colourable)"
 	item_path = /obj/item/clothing/shoes/glow
+
+/datum/loadout_item/shoes/jackboots
+	name = "Workboots (Black)"
+	item_path = /obj/item/clothing/shoes/workboots/black

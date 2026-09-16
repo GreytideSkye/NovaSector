@@ -17,6 +17,7 @@
 				/obj/item/toy/cards/deck/kotahi = 3,
 				/obj/item/toy/cards/deck/tarot = 3,
 				/obj/item/toy/cards/deck/wizoff = 3,
+				/obj/item/toy/cards/deck/cardshoe = 3,
 			),
 		),
 		list(
@@ -109,6 +110,7 @@
 		/obj/item/clothing/shoes/wheelys/rollerskates= 3,
 		/obj/item/melee/skateboard/pro = 3,
 		/obj/item/melee/skateboard/hoverboard = 1,
+		/obj/item/music_tape/robocop = 1,
 	)
 	refill_canister = /obj/item/vending_refill/games
 	default_price = PAYCHECK_CREW

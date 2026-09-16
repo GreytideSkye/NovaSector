@@ -17,7 +17,7 @@
 	mutanteyes = /obj/item/organ/eyes/snail
 	mutanttongue = /obj/item/organ/tongue/snail
 	mutantliver = /obj/item/organ/liver/snail
-	exotic_bloodtype = BLOOD_TYPE_SNAIL
+	exotic_bloodtype = /datum/blood_type/snail
 
 	bodypart_overrides = list(
 		BODY_ZONE_HEAD = /obj/item/bodypart/head/snail,
@@ -29,7 +29,7 @@
 	)
 
 /datum/species/snail/prepare_human_for_preview(mob/living/carbon/human/human)
-	human.dna.features["mcolor"] = COLOR_BEIGE
+	human.dna.features[FEATURE_MUTANT_COLOR] = COLOR_BEIGE
 	human.update_body(is_creating = TRUE)
 
 /datum/species/snail/get_physical_attributes()

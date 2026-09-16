@@ -33,7 +33,6 @@
 		/obj/item/stack/sheet/mineral/silver = 8,
 		/obj/item/stack/sheet/mineral/titanium = 8,
 		/obj/item/stack/sheet/mineral/uranium = 3,
-		/obj/item/xenoarch/strange_rock = 3,
 		/obj/item/stack/sheet/mineral/gold = 3,
 		/obj/item/stack/sheet/mineral/diamond = 1,
 	)
@@ -195,10 +194,10 @@
 	// Generate all the waste gas
 	var/datum/gas_mixture/merger = new
 	merger.assert_gas(/datum/gas/carbon_dioxide)
-	merger.gases[/datum/gas/carbon_dioxide][MOLES] = MOLES_CELLSTANDARD
+	merger.moles[/datum/gas/carbon_dioxide] = MOLES_CELLSTANDARD
 	if(obj_flags & EMAGGED)
 		merger.assert_gas(/datum/gas/tritium)
-		merger.gases[/datum/gas/tritium][MOLES] = MOLES_CELLSTANDARD
+		merger.moles[/datum/gas/tritium] = MOLES_CELLSTANDARD
 
 	merger.temperature = (T20C + gas_temp)
 	var/turf/src_turf = get_turf(src)
@@ -210,19 +209,10 @@
 	playsound(src, 'sound/machines/ping.ogg', 50, FALSE, SILENCED_SOUND_EXTRARANGE, ignore_walls = FALSE)
 
 /obj/machinery/bluespace_miner/crowbar_act(mob/living/user, obj/item/tool)
-	if(default_deconstruction_crowbar(tool))
-		return TRUE
+	return default_deconstruction_crowbar(user, tool)
 
 /obj/machinery/bluespace_miner/screwdriver_act(mob/living/user, obj/item/tool)
-	. = TRUE
-	if(..())
-		return
-
-	if(default_deconstruction_screwdriver(user, icon_state, icon_state, tool))
-		update_appearance()
-		return
-
-	return FALSE
+	return default_deconstruction_screwdriver(user, tool)
 
 /obj/machinery/bluespace_miner/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(obj_flags & EMAGGED)
@@ -248,42 +238,21 @@
 	)
 	needs_anchored = TRUE
 
-/datum/supply_pack/misc/bluespace_miner
+/datum/supply_pack/engineering/bluespace_miner
 	name = "Bluespace Miner"
 	desc = "Nanotrasen has revolutionized the procuring of materials with bluespace-- featuring the Bluespace Miner!"
 	cost = CARGO_CRATE_VALUE * 50 // 10,000
-	contains = list(/obj/item/circuitboard/machine/bluespace_miner)
+	contains = list(/obj/item/circuitboard/machine/bluespace_miner = 1,
+					/obj/item/stack/sheet/glass = 1,
+					/obj/item/stack/sheet/iron/five = 1,
+					/obj/item/stack/ore/bluespace_crystal/refined = 1,
+					/obj/item/stock_parts/servo = 2,
+					/obj/item/stock_parts/matter_bin = 2,
+					/obj/item/stock_parts/micro_laser = 2,
+					/obj/item/stack/cable_coil/five = 1,
+					)
 	crate_name = "Bluespace Miner Circuitboard Crate"
 	crate_type = /obj/structure/closet/crate
-
-/* if we were going to go research based
-/datum/design/board/bluespace_miner
-	name = "Machine Design (Bluespace Miner)"
-	desc = "Allows for the construction of circuit boards used to build a bluespace miner."
-	id = "bluespace_miner"
-	build_path = /obj/item/circuitboard/machine/bluespace_miner
-	category = list(RND_CATEGORY_MISC_MACHINERY)
-	departmental_flags = DEPARTMENT_BITFLAG_SCIENCE | DEPARTMENT_BITFLAG_CARGO | DEPARTMENT_BITFLAG_ENGINEERING
-
-/datum/experiment/scanning/points/bluespace_miner
-	name = "Bluespace Miner"
-	description = "We can learn from the past technology and create a better future-- with bluespace miners."
-	required_points = 5
-	required_atoms = list(
-		/obj/item/xenoarch/broken_item/tech = 1,
-	)
-
-/datum/techweb_node/bluespace_miner
-	id = "bluespace_miner"
-	display_name = "Bluespace Miner"
-	description = "The future is here, where we can mine ores from the great bluespace sea."
-	prereq_ids = list("anomaly_research", "applied_bluespace")
-	design_ids = list(
-		"bluespace_miner",
-	)
-	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = TECHWEB_TIER_5_POINTS)
-	discount_experiments = list(/datum/experiment/scanning/points/bluespace_miner = 5000)
-*/
 
 #undef BLUESPACE_MINER_TOO_HOT
 #undef BLUESPACE_MINER_LOW_PRESSURE

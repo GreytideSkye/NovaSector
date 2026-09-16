@@ -49,7 +49,7 @@
  */
 
 ///Initialize the lazylist
-#define LAZYINITLIST(L) if (!L) { L = list(); }
+#define LAZYINITLIST(L) L ||= list();
 ///If the provided list is empty, set it to null
 #define UNSETEMPTY(L) if (L && !length(L)) L = null
 ///If the provided key -> list is empty, remove it from the list
@@ -59,36 +59,36 @@
 ///Remove an item from the list, set the list to null if empty
 #define LAZYREMOVE(L, I) if(L) { L -= I; if(!length(L)) { L = null; } }
 ///Add an item to the list, if the list is null it will initialize it
-#define LAZYADD(L, I) if(!L) { L = list(); } L += I;
+#define LAZYADD(L, I) L ||= list(); L += I;
 ///Add an item to the list if not already present, if the list is null it will initialize it
-#define LAZYOR(L, I) if(!L) { L = list(); } L |= I;
+#define LAZYOR(L, I) L ||= list(); L |= I;
 ///Returns the key of the submitted item in the list
-#define LAZYFIND(L, V) (L ? L.Find(V) : 0)
+#define LAZYFIND(L, V) (L?.Find(V))
 ///returns L[I] if L exists and I is a valid index of L, runtimes if L is not a list
 #define LAZYACCESS(L, I) (L ? (isnum(I) ? (I > 0 && I <= length(L) ? L[I] : null) : L[I]) : null)
 ///Sets the item K to the value V, if the list is null it will initialize it
-#define LAZYSET(L, K, V) if(!L) { L = list(); } L[K] = V;
+#define LAZYSET(L, K, V) L ||= list(); L[K] = V;
 ///Sets the length of a lazylist
-#define LAZYSETLEN(L, V) if (!L) { L = list(); } L.len = V;
+#define LAZYSETLEN(L, V) L ||= list(); L.len = V;
 ///Returns the length of the list
 #define LAZYLEN(L) length(L)
 ///Sets a list to null
 #define LAZYNULL(L) L = null
 ///Adds to the item K the value V, if the list is null it will initialize it
-#define LAZYADDASSOC(L, K, V) if(!L) { L = list(); } L[K] += V;
+#define LAZYADDASSOC(L, K, V) L ||= list(); L[K] += V;
 ///This is used to add onto lazy assoc list when the value you're adding is a /list/. This one has extra safety over lazyaddassoc because the value could be null (and thus cant be used to += objects)
-#define LAZYADDASSOCLIST(L, K, V) if(!L) { L = list(); } L[K] += list(V);
+#define LAZYADDASSOCLIST(L, K, V) L ||= list(); L[K] += list(V);
 ///Removes the value V from the item K, if the item K is empty will remove it from the list, if the list is empty will set the list to null
-#define LAZYREMOVEASSOC(L, K, V) if(L) { if(L[K]) { L[K] -= V; if(!length(L[K])) L -= K; } if(!length(L)) L = null; }
+#define LAZYREMOVEASSOC(L, K, V) if(L?[K]) { L[K] -= V; if(!length(L[K])) L -= K; if(!length(L)) L = null; }
 ///Accesses an associative list, returns null if nothing is found
-#define LAZYACCESSASSOC(L, I, K) L ? L[I] ? L[I][K] ? L[I][K] : null : null : null
+#define LAZYACCESSASSOC(L, I, K) L?[I]?[K]
 ///Qdel every item in the list before setting the list to null
 #define QDEL_LAZYLIST(L) for(var/I in L) qdel(I); L = null;
 //These methods don't null the list
 ///Use LAZYLISTDUPLICATE instead if you want it to null with no entries
-#define LAZYCOPY(L) (L ? L.Copy() : list() )
+#define LAZYCOPY(L) (L?.Copy() || list())
 /// Consider LAZYNULL instead
-#define LAZYCLEARLIST(L) if(L) L.Cut()
+#define LAZYCLEARLIST(L) L?.Cut()
 ///Returns the list if it's actually a valid list, otherwise will initialize it
 #define SANITIZE_LIST(L) ( islist(L) ? L : list() )
 /// Performs an insertion on the given lazy list with the given key and value. If the value already exists, a new one will not be made.
@@ -105,6 +105,10 @@
 	} else { \
 		lazylist.Insert(index, value); \
 	}
+/// Returns the smallest element in the lazy list, or default if the list is null
+#define LAZYMAX(lazylist, default) (isnull(lazylist) ? default : max(lazylist))
+/// Returns the largest element in the lazy list, or default if the list is null
+#define LAZYMIN(lazylist, default) (isnull(lazylist) ? default : min(lazylist))
 
 ///Ensures the length of a list is at least I, prefilling it with V if needed. if V is a proc call, it is repeated for each new index so that list() can just make a new list for each item.
 #define LISTASSERTLEN(L, I, V...) \
@@ -197,6 +201,7 @@
 	} while(FALSE)
 
 #define SORT_FIRST_INDEX(list) (list[1])
+#define SORT_PRIORITY_INDEX(list) (list["priority"])
 #define SORT_COMPARE_DIRECTLY(thing) (thing)
 #define SORT_VAR_NO_TYPE(varname) var/varname
 /****
@@ -274,15 +279,24 @@
  * Arguments:
  * - [type_to_check][/datum]: An instance to check.
  * - [list_to_check][/list]: A list of typepaths to check the type_to_check against.
- * - zebra: Whether to use the value of the matching type in the list instead of just returning true when a match is found.
+ * - zebra: Whether to use the value of the matching type (closest to our type) in the list instead of just returning true when a match is found.
+ * - return_first_match: If zebra is true, this will return the first match found, instead of the value of closest type
  */
-/proc/is_type_in_list(datum/type_to_check, list/list_to_check, zebra = FALSE)
+/proc/is_type_in_list(datum/type_to_check, list/list_to_check, zebra = FALSE, return_first_match = FALSE)
 	if(!LAZYLEN(list_to_check) || !type_to_check)
 		return FALSE
+	. = FALSE
+	var/highest_matched_type
 	for(var/type in list_to_check)
-		if(istype(type_to_check, type))
-			return !zebra || list_to_check[type] // Subtypes must come first in zebra lists.
-	return FALSE
+		if(!istype(type_to_check, type))
+			continue
+		if(!zebra)
+			return TRUE
+		if(return_first_match || type == type_to_check.type)
+			return list_to_check[type]
+		if(!highest_matched_type || ispath(type, highest_matched_type))
+			. = list_to_check[type]
+			highest_matched_type = type
 
 /**
  * Checks for specific paths in a list.
@@ -529,6 +543,39 @@
 	return result
 
 /**
+* Like pick_weight, but decreases the value of the picked element by 1
+ * For example, given the following list:
+ * A = 6, B = 3, C = 1, D = 0
+ * A would have a 60% chance of being picked, after which it would decrease by one and the new list would be
+ * A = 5, B = 3, C = 1, D = 0
+ * Tt would then have a 55.55...% to be picked, rinse and repeat
+*/
+/proc/pick_weight_take(list/list_to_pick)
+	. = pick_weight(list_to_pick)
+	list_to_pick[.]--
+
+/**
+* Picks n items from a list. The same index will not be chosen more than once.
+* e.g. pick_n(list_of_stuff, 10) would return a list of 10 items from the list, chosen randomly.
+*/
+/proc/pick_n(list/list_to_pick, n)
+	var/list_to_pick_length
+	if(islist(list_to_pick))
+		list_to_pick_length = length(list_to_pick)
+
+	if(!list_to_pick_length || n <= 0)
+		return list()
+
+	/// length of our list_to_pick
+	n = min(n, list_to_pick_length)
+
+	// Shuffle and slice the first n indices
+	var/list/copy_to_shuffle = list_to_pick.Copy()
+	shuffle_inplace(copy_to_shuffle)
+
+	return copy_to_shuffle.Copy(1, n + 1)
+
+/**
  * Given a list, return a copy where values without defined weights are given weight 1.
  * For example, fill_with_ones(list(A, B=2, C)) = list(A=1, B=2, C=1)
  * Useful for weighted random choices (loot tables, syllables in languages, etc.)
@@ -644,13 +691,15 @@
 
 	return inserted_list
 
-///same as shuffle, but returns nothing and acts on list in place
+///same as shuffle, but acts on list in place, and returns same list
 /proc/shuffle_inplace(list/inserted_list)
 	if(!inserted_list)
 		return
 
 	for(var/i in 1 to inserted_list.len - 1)
 		inserted_list.Swap(i, rand(i, inserted_list.len))
+
+	return inserted_list
 
 ///Return a list with no duplicate entries
 /proc/unique_list(list/inserted_list)
@@ -722,7 +771,7 @@
  *
  * If no record is found, returns null
  */
-/proc/find_record(value, locked_only = FALSE)
+/proc/find_record(value, locked_only = FALSE) as /datum/record
 	if(locked_only)
 		for(var/datum/record/locked/target in GLOB.manifest.locked)
 			if(target.name != value)
@@ -881,14 +930,6 @@
 		used_key_list[input_key] = 1
 	return input_key
 
-///Flattens a keyed list into a list of its contents
-/proc/flatten_list(list/key_list)
-	if(!islist(key_list))
-		return null
-	. = list()
-	for(var/key in key_list)
-		. |= LIST_VALUE_WRAP_LISTS(key_list[key])
-
 ///Make a normal list an associative one
 /proc/make_associative(list/flat_list)
 	. = list()
@@ -945,6 +986,14 @@
 			continue
 		UNTYPED_LIST_ADD(keys, key)
 	return keys
+
+/// Turns an associative list into a flat list of values
+/proc/assoc_to_values(list/key_list)
+	if(!islist(key_list))
+		return null
+	. = list()
+	for(var/key in key_list)
+		. |= LIST_VALUE_WRAP_LISTS(key_list[key])
 
 ///compare two lists, returns TRUE if they are the same
 /proc/compare_list(list/l,list/d)
@@ -1344,3 +1393,17 @@
 	while(islist(result))
 		result = pick(result)
 	return result
+
+/** Takes in two weighted lists and outputs a third list containing the elements of both inputs with their weights blended according to a given proportion.
+ * Not exact and may have rounding errors, will round to nearest 1/1000.
+ * */
+/proc/blend_weighted_lists(list/listA, list/listB, blend)
+	var/list/joined_list = listA | listB
+
+	listA = counterlist_normalise(listA)
+	listB = counterlist_normalise(listB)
+
+	for(var/element in joined_list)
+		joined_list[element] = round((listA[element] * (1 - blend) + listB[element] * (blend)) * 1000)
+
+	return joined_list

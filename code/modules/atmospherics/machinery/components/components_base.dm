@@ -71,7 +71,7 @@
 	underlays.Cut()
 
 	color = null
-	var/uncovered_turf = HAS_TRAIT(loc, TRAIT_UNCOVERED_TURF)
+	var/uncovered_turf = loc && HAS_TRAIT(loc, TRAIT_UNCOVERED_TURF)
 	SET_PLANE_IMPLICIT(src, (underfloor_state == UNDERFLOOR_INTERACTABLE && !uncovered_turf) ? GAME_PLANE : FLOOR_PLANE)
 
 	// Layer is handled in update_layer()
@@ -90,7 +90,7 @@
 		var/obj/machinery/atmospherics/node = nodes[i]
 		var/node_dir = get_dir(src, node)
 		var/mutable_appearance/pipe_appearance = mutable_appearance('icons/obj/pipes_n_cables/pipe_underlays.dmi', "intact_[node_dir]_[underlay_pipe_layer]", appearance_flags = RESET_COLOR|KEEP_APART)
-		pipe_appearance.color = (node.pipe_color == ATMOS_COLOR_OMNI || istype(node, /obj/machinery/atmospherics/pipe/color_adapter)) ? pipe_color : node.pipe_color
+		pipe_appearance.color = SELECT_ATMOS_NODE_COLOR(src, node)
 		if (underfloor_state == UNDERFLOOR_VISIBLE || uncovered_turf)
 			pipe_appearance.layer = BELOW_CATWALK_LAYER + get_pipe_layer_offset()
 			SET_PLANE_EXPLICIT(pipe_appearance, FLOOR_PLANE, src)
@@ -112,7 +112,7 @@
 
 /obj/machinery/atmospherics/components/get_pipe_image(iconfile, iconstate, direction, color, piping_layer, trinary)
 	var/mutable_appearance/pipe_appearance = ..()
-	if (underfloor_state == UNDERFLOOR_VISIBLE || HAS_TRAIT(loc, TRAIT_UNCOVERED_TURF))
+	if (underfloor_state == UNDERFLOOR_VISIBLE || (loc && HAS_TRAIT(loc, TRAIT_UNCOVERED_TURF)))
 		pipe_appearance.layer = BELOW_CATWALK_LAYER + get_pipe_layer_offset()
 		SET_PLANE_EXPLICIT(pipe_appearance, FLOOR_PLANE, src)
 	return pipe_appearance
@@ -268,8 +268,7 @@
 			internal_pressure = internal_pressure > airs[i].return_pressure() ? internal_pressure : airs[i].return_pressure()
 
 	if(!filled_pipe)
-		default_deconstruction_crowbar(tool)
-		return ITEM_INTERACT_SUCCESS
+		return default_deconstruction_crowbar(user, tool)
 
 	to_chat(user, span_notice("You begin to unfasten \the [src]..."))
 

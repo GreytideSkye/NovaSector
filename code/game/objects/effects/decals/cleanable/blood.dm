@@ -8,6 +8,10 @@
 	clean_type = CLEAN_TYPE_BLOOD
 	color = BLOOD_COLOR_RED
 
+	var/static/list/loc_connections = list(
+		COMSIG_ATOM_ENTERED = PROC_REF(on_entered)
+	)
+
 	/// Amount of blood, in units, in this decal
 	/// Spent when drying or making footprints
 	var/bloodiness = BLOOD_AMOUNT_PER_DECAL
@@ -50,6 +54,8 @@
 				can_hold_viruses = TRUE
 				break
 	. = ..(diseases = can_hold_viruses ? diseases : null)
+	if(. == INITIALIZE_HINT_QDEL)
+		return
 	if(islist(blood_or_dna))
 		add_blood_DNA(blood_or_dna)
 	else if(istype(blood_or_dna, /datum/blood_type))
@@ -62,16 +68,15 @@
 		total_dry_time = drying_time
 		START_PROCESSING(SSblood_drying, src)
 
-	var/static/list/loc_connections = list(
-		COMSIG_ATOM_ENTERED = PROC_REF(on_entered)
-	)
 	AddElement(/datum/element/connect_loc, loc_connections)
 
 	if (bloodiness || GET_ATOM_BLOOD_DECAL_LENGTH(src))
 		update_appearance()
 
-/obj/effect/decal/cleanable/blood/Destroy()
+/obj/effect/decal/cleanable/blood/Destroy(force)
 	STOP_PROCESSING(SSblood_drying, src)
+	// connect_loc only unregisters via COMSIG_MOVABLE_MOVED, which never fires when the turf we're on gets replaced by ChangeTurf()
+	RemoveElement(/datum/element/connect_loc, loc_connections)
 	return ..()
 
 /// Returns the default blood type for this decal for maploaded decals
@@ -119,7 +124,7 @@
 		. += blood_emissive(icon, icon_state)
 
 /obj/effect/decal/cleanable/blood/proc/blood_emissive(icon_to_use, icon_state_to_use)
-	return emissive_appearance(icon_to_use, icon_state_to_use, src, layer, 255 * emissive_alpha / alpha)
+	return emissive_appearance(icon_to_use, icon_state_to_use, src, alpha = 255 * emissive_alpha / alpha, effect_type = EMISSIVE_NO_BLOOM)
 
 /obj/effect/decal/cleanable/blood/lazy_init_reagents()
 	if (reagents)
@@ -134,7 +139,9 @@
 	create_reagents(round(bloodiness * BLOOD_TO_UNITS_MULTIPLIER, CHEMICAL_VOLUME_ROUNDING))
 	var/num_reagents = length(reagents_to_add)
 	for(var/reagent_type in reagents_to_add)
-		reagents.add_reagent(reagent_type, round(bloodiness * BLOOD_TO_UNITS_MULTIPLIER / num_reagents, CHEMICAL_VOLUME_ROUNDING))
+		reagents.add_reagent(reagent_type = reagent_type,
+							amount = round(bloodiness * BLOOD_TO_UNITS_MULTIPLIER / num_reagents, CHEMICAL_VOLUME_ROUNDING),
+							data = ispath(reagent_type, /datum/reagent/blood) ? list(BLOOD_DATA_DNA = pick(blood_DNA)) : null)
 	return reagents
 
 /obj/effect/decal/cleanable/blood/replace_decal(obj/effect/decal/cleanable/blood/merger)
@@ -297,6 +304,8 @@
 
 /obj/effect/decal/cleanable/blood/trail_holder/Initialize(mapload, list/datum/disease/diseases, list/blood_or_dna = get_default_blood_type())
 	. = ..()
+	if(. == INITIALIZE_HINT_QDEL)
+		return
 	icon_state = "nothing"
 	update_appearance() // Cut possible overlays
 	if(mapload)
@@ -459,6 +468,25 @@
 	/// Beyond a threshold we change to a bloodier icon state
 	var/very_bloody = FALSE
 
+/obj/effect/decal/cleanable/blood/trail/Initialize(mapload, list/datum/disease/diseases, list/blood_or_dna)
+	. = ..()
+	// Despite having VIS_INHERIT_PLANE, our emissives still inherit our plane offset, so we need to inherit our parent's offset to have them render correctly
+	if(istype(loc, /obj/effect/decal/cleanable/blood/trail_holder))
+		SET_PLANE_EXPLICIT(src, initial(plane), loc)
+		if (emissive_alpha && !dried)
+			update_appearance() // correct our emissive
+		return
+
+
+#ifndef UNIT_TESTS
+	if (mapload)
+		log_mapping("[src] spawned outside of a trail holder at [AREACOORD(src)]!")
+		return INITIALIZE_HINT_QDEL
+#endif
+
+	stack_trace("[src] spawned outside of a trail holder at [AREACOORD(src)]!")
+	return INITIALIZE_HINT_QDEL
+
 /obj/effect/decal/cleanable/blood/trail/update_desc(updates)
 	. = ..()
 	desc = "A [dried ? "dried " : ""]trail of [get_blood_string()]."
@@ -511,6 +539,8 @@
 
 /obj/effect/decal/cleanable/blood/gibs/Initialize(mapload, list/datum/disease/diseases, list/blood_or_dna = get_default_blood_type())
 	. = ..()
+	if(. == INITIALIZE_HINT_QDEL)
+		return
 	leave_blood = has_blood_flag(GET_ATOM_BLOOD_DNA(src), BLOOD_COVER_TURFS)
 	if(squishy)
 		AddElement(/datum/element/squish_sound)
@@ -521,13 +551,7 @@
 /obj/effect/decal/cleanable/blood/gibs/lazy_init_reagents()
 	if (reagents)
 		return reagents
-
-	if (!decal_reagent)
-		return
-
-	create_reagents(reagent_amount)
-	reagents.add_reagent(decal_reagent, reagent_amount)
-	return reagents
+	return init_reagents(decal_reagent, reagent_amount)
 
 /obj/effect/decal/cleanable/blood/gibs/update_overlays()
 	. = ..()
@@ -671,6 +695,8 @@
 
 /obj/effect/decal/cleanable/blood/footprints/Initialize(mapload, list/datum/disease/diseases, list/blood_or_dna = get_default_blood_type())
 	. = ..()
+	if(. == INITIALIZE_HINT_QDEL)
+		return
 	icon_state = "" // All of the footprint visuals come from overlays
 	if(mapload)
 		entered_dirs |= dir // Keep the same appearance as in the map editor
@@ -720,11 +746,10 @@
 			. += bloodstep_overlay
 
 			if(emissive_alpha && emissive_alpha < alpha && !dried)
-				var/enter_emissive_state = "[enter_state]_emissive-[emissive_alpha]"
-				var/mutable_appearance/emissive_overlay = bloody_footprints_cache[enter_emissive_state]
+				var/enter_emissive_state = "[enter_state]_emissive-[Ddir]-[emissive_alpha]"
+				var/image/emissive_overlay = bloody_footprints_cache[enter_emissive_state]
 				if(!emissive_overlay)
-					emissive_overlay = blood_emissive(icon, "[icon_state_to_use]1")
-					emissive_overlay.dir = Ddir
+					emissive_overlay = image(blood_emissive(icon, "[icon_state_to_use]1"), dir = Ddir)
 					bloody_footprints_cache[enter_emissive_state] = emissive_overlay
 				. += emissive_overlay
 
@@ -737,11 +762,10 @@
 			. += bloodstep_overlay
 
 			if(emissive_alpha && emissive_alpha < alpha && !dried)
-				var/exit_emissive_state = "[exit_state]_emissive-[emissive_alpha]"
-				var/mutable_appearance/emissive_overlay = bloody_footprints_cache[exit_emissive_state]
+				var/exit_emissive_state = "[exit_state]_emissive-[Ddir]-[emissive_alpha]"
+				var/image/emissive_overlay = bloody_footprints_cache[exit_emissive_state]
 				if(!emissive_overlay)
-					emissive_overlay = blood_emissive(icon, "[icon_state_to_use]2")
-					emissive_overlay.dir = Ddir
+					emissive_overlay = image(blood_emissive(icon, "[icon_state_to_use]2"), dir = Ddir)
 					bloody_footprints_cache[exit_emissive_state] = emissive_overlay
 				. += emissive_overlay
 
@@ -780,6 +804,8 @@
 	base_suffix = "splatter"
 	can_dry = FALSE // No point
 
+	mergeable_decal = FALSE
+
 	/// The turf we just came from, so we can back up when we hit a wall
 	var/turf/prev_loc
 	/// Skip making the final blood splatter when we're done, like if we're not in a turf
@@ -797,6 +823,8 @@
 
 /obj/effect/decal/cleanable/blood/hitsplatter/Initialize(mapload, list/datum/disease/diseases, list/blood_or_dna = get_default_blood_type(), splatter_strength)
 	. = ..()
+	if(. == INITIALIZE_HINT_QDEL)
+		return
 	leave_blood = has_blood_flag(GET_ATOM_BLOOD_DNA(src), BLOOD_COVER_TURFS)
 	prev_loc = loc //Just so we are sure prev_loc exists
 	if(splatter_strength)
@@ -833,6 +861,9 @@
 		if(splatter_strength <= 0)
 			break
 		iter_atom.add_blood_DNA(GET_ATOM_BLOOD_DNA(src))
+		if(isliving(iter_atom))
+			var/mob/living/splatted = iter_atom
+			splatted.add_mood_event("splattered_with_blood", /datum/mood_event/splattered_with_blood)
 
 	splatter_strength--
 	// we used all our blood so go away

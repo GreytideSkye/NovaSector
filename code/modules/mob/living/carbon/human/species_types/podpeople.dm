@@ -6,9 +6,10 @@
 	inherent_traits = list(
 		TRAIT_MUTANT_COLORS,
 		TRAIT_PLANT_SAFE,
+		TRAIT_REQUIRED_ADV_HEALTH_SCANNER,
 	)
 	mutant_organs = list(
-		// /obj/item/organ/pod_hair = "None", // NOVA EDIT REMOVAL - Customization (it messes up unit tests.)
+		/obj/item/organ/pod_hair = "None",
 	)
 	inherent_biotypes = MOB_ORGANIC | MOB_HUMANOID | MOB_PLANT
 	inherent_factions = list(FACTION_PLANTS, FACTION_VINES)
@@ -16,7 +17,7 @@
 	heatmod = 1.5
 	payday_modifier = 1.0
 	meat = /obj/item/food/meat/slab/human/mutant/plant
-	exotic_bloodtype = BLOOD_TYPE_H2O
+	exotic_bloodtype = /datum/blood_type/water
 	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | ERT_SPAWN | SLIME_EXTRACT
 	species_language_holder = /datum/language_holder/plant
 
@@ -40,8 +41,8 @@
 	)
 
 /datum/species/pod/prepare_human_for_preview(mob/living/carbon/human/human)
-	human.dna.features["mcolor"] = "#886600"
-	human.dna.features["pod_hair"] = "Rose"
+	human.dna.features[FEATURE_MUTANT_COLOR] = "#886600"
+	human.dna.features[FEATURE_POD_HAIR] = "Rose"
 	human.update_body(is_creating = TRUE)
 
 /datum/species/pod/get_physical_attributes()

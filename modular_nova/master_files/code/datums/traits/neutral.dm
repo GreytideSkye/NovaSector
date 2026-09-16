@@ -1,14 +1,3 @@
-GLOBAL_VAR_INIT(DNR_trait_overlay, generate_DNR_trait_overlay())
-
-/// Instantiates GLOB.DNR_trait_overlay by creating a new mutable_appearance instance of the overlay.
-/proc/generate_DNR_trait_overlay()
-	RETURN_TYPE(/mutable_appearance)
-
-	var/mutable_appearance/DNR_trait_overlay = mutable_appearance('modular_nova/modules/indicators/icons/DNR_trait_overlay.dmi', "DNR", FLY_LAYER)
-	DNR_trait_overlay.appearance_flags = APPEARANCE_UI_IGNORE_ALPHA | KEEP_APART
-	return DNR_trait_overlay
-
-
 // NOVA NEUTRAL TRAITS
 /datum/quirk/excitable
 	name = "Excitable!"
@@ -69,14 +58,15 @@ GLOBAL_VAR_INIT(DNR_trait_overlay, generate_DNR_trait_overlay())
 
 /// Adds the DNR HUD element if src has TRAIT_DNR. Removes it otherwise.
 /mob/living/proc/update_dnr_hud()
-	set_hud_image_state(DNR_HUD, "hud_dnr")
+	set_hud_image_state(DNR_HUD, hud_state = "hud_dnr")
 	if(HAS_TRAIT(src, TRAIT_DNR))
 		set_hud_image_active(DNR_HUD)
 	else
 		set_hud_image_inactive(DNR_HUD)
 
-/mob/living/carbon/human/examine(mob/user)
-	. = ..()
+/// Examine lines warning HUD users that we're not to be revived. Called by /mob/living/carbon/human/examine().
+/mob/living/carbon/human/proc/get_dnr_examine(mob/user)
+	. = list()
 
 	if(stat != DEAD && HAS_TRAIT(src, TRAIT_DNR) && (HAS_TRAIT(user, TRAIT_SECURITY_HUD) || HAS_TRAIT(user, TRAIT_MEDICAL_HUD)))
 		. += "\n[span_boldwarning("This individual is unable to be revived, and may be permanently dead if allowed to die!")]"
@@ -104,11 +94,11 @@ GLOBAL_VAR_INIT(DNR_trait_overlay, generate_DNR_trait_overlay())
 	pcooldown = world.time + pcooldown_time
 	var/mob/living/carbon/human/user = quirk_holder
 	if(user && istype(user))
-		if(user.stat == CONSCIOUS)
+		if(!IS_UNCONSCIOUS_OR_CRIT(user))
 			if(prob(20))
 				user.emote("laugh")
-				addtimer(CALLBACK(user, /mob/proc/emote, "laugh"), 5 SECONDS)
-				addtimer(CALLBACK(user, /mob/proc/emote, "laugh"), 10 SECONDS)
+				addtimer(CALLBACK(user, TYPE_PROC_REF(/mob, emote), "laugh"), 5 SECONDS)
+				addtimer(CALLBACK(user, TYPE_PROC_REF(/mob, emote), "laugh"), 10 SECONDS)
 
 /obj/item/paper/joker
 	name = "disability card"
@@ -377,8 +367,8 @@ GLOBAL_LIST_INIT(possible_snout_sensitivities, list(
 /datum/movespeed_modifier/overweight
 	multiplicative_slowdown = 0.5 //Around that of a dufflebag, enough to be impactful but not debilitating.
 
-/datum/mood_event/fat/New(mob/parent_mob, ...)
+/datum/mood_event/fat/add_effects(...)
 	. = ..()
-	if(HAS_TRAIT_FROM(parent_mob, TRAIT_OFF_BALANCE_TACKLER, QUIRK_TRAIT))
+	if(HAS_TRAIT_FROM(owner, TRAIT_OFF_BALANCE_TACKLER, QUIRK_TRAIT))
 		mood_change = 0 // They are probably used to it, no reason to be viscerally upset about it.
 		description = "<b>I'm fat.</b>"

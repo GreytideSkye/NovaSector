@@ -17,6 +17,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 /obj/machinery/computer/communications
 	name = "communications console"
 	desc = "A console used for high-priority announcements and emergencies."
+	icon_state = MAP_SWITCH("computer", "/obj/machinery/computer/communications")
 	icon_screen = "comm"
 	icon_keyboard = "tech_key"
 	req_access = list(ACCESS_COMMAND)
@@ -66,6 +67,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 	var/last_toggled
 
 /obj/machinery/computer/communications/syndicate
+	icon_state = MAP_SWITCH("computer", "/obj/machinery/computer/communications/syndicate")
 	icon_screen = "commsyndie"
 	circuit = /obj/item/circuitboard/computer/communications/syndicate
 	req_access = list(ACCESS_SYNDICATE_LEADER)
@@ -117,11 +119,11 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 		return TRUE
 	return authenticated
 
-/obj/machinery/computer/communications/attackby(obj/I, mob/user, list/modifiers, list/attack_modifiers)
-	if(isidcard(I))
-		attack_hand(user)
-	else
-		return ..()
+/obj/machinery/computer/communications/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	if(!isidcard(tool))
+		return NONE
+	attack_hand(user)
+	return ITEM_INTERACT_SUCCESS
 
 /obj/machinery/computer/communications/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(istype(emag_card, /obj/item/card/emag/battlecruiser))
@@ -269,12 +271,25 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 				if (can_buy_shuttles_or_fail_reason != FALSE)
 					to_chat(user, span_alert("[can_buy_shuttles_or_fail_reason]"))
 				return
-			var/list/shuttles = flatten_list(SSmapping.shuttle_templates)
+			var/list/shuttles = assoc_to_values(SSmapping.shuttle_templates)
 			var/datum/map_template/shuttle/shuttle = locate(params["shuttle"]) in shuttles
 			if (!istype(shuttle))
 				return
 			if (!can_purchase_this_shuttle(shuttle))
 				return
+			if (istype(shuttle, /datum/map_template/shuttle/emergency/departmental))
+				var/datum/map_template/shuttle/emergency/departmental/dept_shuttle = shuttle
+				if(dept_shuttle.department_type)
+					var/max_crew_count = 0
+					for(var/dept_type in SSjob.joinable_departments_by_type)
+						var/crew_count = get_department_employee_count(dept_type)
+						if(crew_count > max_crew_count)
+							max_crew_count = crew_count
+
+					var/crew_in_department = get_department_employee_count(dept_shuttle.department_type)
+					if(crew_in_department <= 0 || crew_in_department < max_crew_count)
+						to_chat(user, span_alert("This shuttle can be buyed only if this department has most employees."))
+						return
 			if (!shuttle.prerequisites_met())
 				to_chat(user, span_alert("You have not met the requirements for purchasing this shuttle."))
 				return
@@ -290,7 +305,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 			bank_account.adjust_money(-shuttle.credit_cost)
 
 			var/purchaser_name = (obj_flags & EMAGGED) ? scramble_message_replace_chars("AUTHENTICATION FAILURE: CVE-2018-17107", 60) : user.real_name
-			minor_announce("[purchaser_name] has purchased [shuttle.name] for [shuttle.credit_cost] credits.[shuttle.extra_desc ? " [shuttle.extra_desc]" : ""]" , "Shuttle Purchase")
+			minor_announce("[purchaser_name] has purchased [shuttle.name] for [shuttle.credit_cost] [MONEY_NAME].[shuttle.extra_desc ? " [shuttle.extra_desc]" : ""]" , "Shuttle Purchase")
 
 			message_admins("[ADMIN_LOOKUPFLW(user)] purchased [shuttle.name].")
 			log_shuttle("[key_name(user)] has purchased [shuttle.name].")
@@ -300,7 +315,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 			// AIs cannot recall the shuttle
 			if (!authenticated(user) || HAS_SILICON_ACCESS(user) || syndicate)
 				return
-			SSshuttle.cancelEvac(user)
+			SSshuttle.cancel_evac(user)
 		if ("requestNukeCodes")
 			if (!authenticated_as_non_silicon_captain(user))
 				return
@@ -343,7 +358,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 			if(soft_filter_result)
 				if(tgui_alert(user,"Your message contains \"[soft_filter_result[CHAT_FILTER_INDEX_WORD]]\". \"[soft_filter_result[CHAT_FILTER_INDEX_REASON]]\", Are you sure you want to use it?", "Soft Blocked Word", list("Yes", "No")) != "Yes")
 					return
-				message_admins("[ADMIN_LOOKUPFLW(user)] has passed the soft filter for \"[soft_filter_result[CHAT_FILTER_INDEX_WORD]]\". They may be using a disallowed term for a cross-station message. Increasing delay time to reject.\n\n Message: \"[message]\"")
+				message_admins("[ADMIN_LOOKUPFLW(user)] has passed the soft filter for \"[soft_filter_result[CHAT_FILTER_INDEX_WORD]]\". They may be using a disallowed term for a cross-station message. Increasing delay time to reject.\n\n Message: \"[html_encode(message)]\"")
 				log_admin_private("[key_name(user)] has passed the soft filter for \"[soft_filter_result[CHAT_FILTER_INDEX_WORD]]\". They may be using a disallowed term for a cross-station message. Increasing delay time to reject.\n\n Message: \"[message]\"")
 				GLOB.communications_controller.soft_filtering = TRUE
 
@@ -351,7 +366,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 
 			var/destination = params["destination"]
 			if (!(destination in CONFIG_GET(keyed_list/cross_server)) && destination != "all")
-				message_admins("[ADMIN_LOOKUPFLW(user)] has passed an invalid destination into comms console cross-sector message. Message: \"[message]\"")
+				message_admins("[ADMIN_LOOKUPFLW(user)] has passed an invalid destination into comms console cross-sector message. Message: \"[html_encode(message)]\"")
 				return
 
 			user.log_message("is about to send the following message to [destination]: [message]", LOG_GAME)
@@ -361,7 +376,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 					"<b color='orange'>CROSS-SECTOR MESSAGE (OUTGOING):</b> [ADMIN_LOOKUPFLW(user)] is about to send \
 					the following message to <b>[destination]</b> (will autoapprove in [GLOB.communications_controller.soft_filtering ? DisplayTimeText(EXTENDED_CROSS_SECTOR_CANCEL_TIME) : DisplayTimeText(CROSS_SECTOR_CANCEL_TIME)]): \
 					<b><a href='byond://?src=[REF(src)];reject_cross_comms_message=1'>REJECT</a></b><br> \
-					[message]" \
+					[html_encode(message)]" \
 				)
 			)
 
@@ -636,7 +651,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 
 				if (SSshuttle.emergency.mode != SHUTTLE_IDLE && SSshuttle.emergency.mode != SHUTTLE_RECALL)
 					data["shuttleCalled"] = TRUE
-					data["shuttleRecallable"] = SSshuttle.canRecall() || syndicate
+					data["shuttleRecallable"] = SSshuttle.can_recall(user) || syndicate
 
 				if (SSshuttle.emergencyCallAmount)
 					data["shuttleCalledPreviously"] = TRUE
@@ -667,6 +682,27 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 					if (!can_purchase_this_shuttle(shuttle_template))
 						continue
 
+					var/department_locked = FALSE
+					var/department_name_string = ""
+
+					if (istype(shuttle_template, /datum/map_template/shuttle/emergency/departmental))
+						var/datum/map_template/shuttle/emergency/departmental/dept_shuttle = shuttle_template
+						department_name_string = dept_shuttle.department_name
+
+						if (dept_shuttle.department_type)
+							var/crew_in_department = get_department_employee_count(dept_shuttle.department_type)
+							if(crew_in_department <= 0)
+								department_locked = TRUE
+							else
+								for(var/other_id in SSmapping.shuttle_templates)
+									var/datum/map_template/shuttle/emergency/departmental/other_shuttle = SSmapping.shuttle_templates[other_id]
+									if(!istype(other_shuttle) || other_shuttle == dept_shuttle || !other_shuttle.department_type)
+										continue
+									var/crew_in_other_department = get_department_employee_count(other_shuttle.department_name)
+									if(crew_in_department < crew_in_other_department)
+										department_locked = TRUE
+										break
+
 					shuttles += list(list(
 						"name" = shuttle_template.name,
 						"description" = shuttle_template.description,
@@ -676,6 +712,8 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 						"emagOnly" = shuttle_template.emag_only,
 						"prerequisites" = shuttle_template.prerequisites,
 						"ref" = REF(shuttle_template),
+						"department_locked" = department_locked,
+						"department_name" = department_name_string,
 					))
 
 				data["budget"] = bank_account.account_balance
@@ -698,6 +736,8 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 		"callShuttleReasonMinLength" = CALL_SHUTTLE_REASON_LENGTH,
 		"maxStatusLineLength" = MAX_STATUS_LINE_LENGTH,
 		"maxMessageLength" = MAX_MESSAGE_LEN,
+		"displayed_currency_full_name" = " [MONEY_NAME]",
+		"displayed_currency_name" = " [MONEY_SYMBOL]",
 	)
 
 /obj/machinery/computer/communications/Topic(href, href_list)
@@ -777,6 +817,19 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 
 	return FALSE
 
+/// Used in checks of dept-locked shuttles.
+/// Determines number of employees in department.
+/obj/machinery/computer/communications/proc/get_department_employee_count(datum/job_department/target_department_type)
+	if(!target_department_type)
+		return
+	var/datum/job_department/current_department = SSjob.joinable_departments_by_type[target_department_type]
+	if(!istype(current_department))
+		return
+	var/total_crew_count = 0
+	for(var/datum/job/current_job in current_department.department_jobs)
+		total_crew_count += current_job.current_positions
+	return total_crew_count
+
 /obj/machinery/computer/communications/proc/can_send_messages_to_other_sectors(mob/user)
 	if (!authenticated_as_non_silicon_captain(user))
 		return
@@ -850,7 +903,6 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 #define HACK_PIRATE "Pirates"
 #define HACK_FUGITIVES "Fugitives"
 #define HACK_SLEEPER "Sleeper Agents"
-#define HACK_THREAT "Threat Boost"
 
 /// The minimum number of ghosts / observers to have the chance of spawning pirates.
 #define MIN_GHOSTS_FOR_PIRATES 4
@@ -894,7 +946,7 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
  */
 /obj/machinery/computer/communications/proc/hack_console(mob/living/hacker)
 	// All hack results we'll choose from.
-	var/list/hack_options = list(HACK_THREAT)
+	var/list/hack_options = list(HACK_SLEEPER)
 
 	// If we have a certain amount of ghosts, we'll add some more !!fun!! options to the list
 	var/num_ghosts = length(GLOB.current_observers_list) + length(GLOB.dead_player_list)
@@ -909,11 +961,6 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 		if(num_ghosts >= MIN_GHOSTS_FOR_FUGITIVES)
 			hack_options += HACK_FUGITIVES
 
-	if (!EMERGENCY_PAST_POINT_OF_NO_RETURN)
-		// If less than a certain percent of the population is ghosts, consider sleeper agents
-		if(num_ghosts < (length(GLOB.clients) * MAX_PERCENT_GHOSTS_FOR_SLEEPER))
-			hack_options += HACK_SLEEPER
-
 	var/picked_option = pick(hack_options)
 	message_admins("[ADMIN_LOOKUPFLW(hacker)] hacked a [name] located at [ADMIN_VERBOSEJMP(src)], resulting in: [picked_option]!")
 	hacker.log_message("hacked a communications console, resulting in: [picked_option].", LOG_GAME, log_globally = TRUE)
@@ -921,59 +968,29 @@ GLOBAL_VAR_INIT(cops_arrived, FALSE)
 		if(HACK_PIRATE) // Triggers pirates, which the crew may be able to pay off to prevent
 			var/list/pirate_rulesets = list(
 				/datum/dynamic_ruleset/midround/pirates,
-				/datum/dynamic_ruleset/midround/dangerous_pirates,
+				/datum/dynamic_ruleset/midround/pirates/heavy,
 			)
-			priority_announce(
-				"Attention crew: sector monitoring reports a massive jump-trace from an enemy vessel destined for your system. Prepare for imminent hostile contact.",
-				"[command_name()] High-Priority Update",
-			)
-			SSdynamic.picking_specific_rule(pick(pirate_rulesets), forced = TRUE, ignore_cost = TRUE)
+			SSdynamic.force_run_midround(pick(pirate_rulesets))
 
 		if(HACK_FUGITIVES) // Triggers fugitives, which can cause confusion / chaos as the crew decides which side help
 			priority_announce(
 				"Attention crew: sector monitoring reports a jump-trace from an unidentified vessel destined for your system. Prepare for probable contact.",
 				"[command_name()] High-Priority Update",
 			)
-
-			force_event_after(/datum/round_event_control/fugitives, "[hacker] hacking a communications console", rand(20 SECONDS, 1 MINUTES))
-
-		if(HACK_THREAT) // Force an unfavorable situation on the crew
-			priority_announce(
-				"Attention crew, the Nanotrasen Department of Intelligence has received intel suggesting increased enemy activity in your sector beyond that initially reported in today's threat advisory.",
-				"[command_name()] High-Priority Update",
-			)
-
-			for(var/mob/crew_member as anything in GLOB.player_list)
-				if(!is_station_level(crew_member.z))
-					continue
-				shake_camera(crew_member, 15, 1)
-
-			SSdynamic.unfavorable_situation()
+			SSdynamic.force_run_midround(/datum/dynamic_ruleset/midround/from_ghosts/fugitives)
 
 		if(HACK_SLEEPER) // Trigger one or multiple sleeper agents with the crew (or for latejoining crew)
-			var/datum/dynamic_ruleset/midround/sleeper_agent_type = /datum/dynamic_ruleset/midround/from_living/autotraitor
-			var/max_number_of_sleepers = clamp(round(length(GLOB.alive_player_list) / 20), 1, 3)
-			var/num_agents_created = 0
-			for(var/num_agents in 1 to rand(1, max_number_of_sleepers))
-				if(!SSdynamic.picking_specific_rule(sleeper_agent_type, forced = TRUE, ignore_cost = TRUE))
-					break
-				num_agents_created++
-
-			if(num_agents_created <= 0)
-				// We failed to run any midround sleeper agents, so let's be patient and run latejoin traitor
-				SSdynamic.picking_specific_rule(/datum/dynamic_ruleset/latejoin/infiltrator, forced = TRUE, ignore_cost = TRUE)
-
-			else
-				// We spawned some sleeper agents, nice - give them a report to kickstart the paranoia
-				priority_announce(
-					"Attention crew, it appears that someone on your station has hijacked your telecommunications and broadcasted an unknown signal.",
-					"[command_name()] High-Priority Update",
-				)
+			priority_announce(
+				"Attention crew, it appears that someone on your station has hijacked your telecommunications and broadcasted an unknown signal.",
+				"[command_name()] High-Priority Update",
+			)
+			var/max_number_of_sleepers = clamp(round(length(GLOB.alive_player_list) / 40), 1, 3)
+			if(!SSdynamic.force_run_midround(/datum/dynamic_ruleset/midround/from_living/traitor, forced_max_cap = max_number_of_sleepers))
+				SSdynamic.queue_ruleset(/datum/dynamic_ruleset/latejoin/traitor)
 
 #undef HACK_PIRATE
 #undef HACK_FUGITIVES
 #undef HACK_SLEEPER
-#undef HACK_THREAT
 
 #undef MIN_GHOSTS_FOR_PIRATES
 #undef MIN_GHOSTS_FOR_FUGITIVES

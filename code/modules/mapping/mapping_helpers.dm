@@ -179,7 +179,7 @@
 				qdel(src)
 				return
 			if(9 to 11)
-				airlock.lights = FALSE
+				airlock.feedback = FALSE
 				// These do not use airlock.bolt() because we want to pretend it was always locked. That means no sound effects.
 				airlock.locked = TRUE
 			if(12 to 15)
@@ -238,7 +238,15 @@
 
 /obj/effect/mapping_helpers/airlock/unres/payload(obj/machinery/door/airlock/airlock)
 	airlock.unres_sides ^= dir
-	airlock.unres_sensor = TRUE
+	airlock.unres_latch = TRUE
+
+/obj/effect/mapping_helpers/airlock/unres/delayed
+	name = "airlock unrestricted side delayed helper"
+	icon_state = "airlock_unres_delayed_helper"
+
+/obj/effect/mapping_helpers/airlock/unres/delayed/payload(obj/machinery/door/airlock/airlock)
+	. = ..()
+	airlock.delayed_unres_open = TRUE
 
 /obj/effect/mapping_helpers/airlock/abandoned
 	name = "airlock abandoned helper"
@@ -953,7 +961,9 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_atoms_ontop)
 
 		body_bag.insert(new_human, TRUE)
 		body_bag.close()
-		body_bag.handle_tag("[new_human.real_name][new_human.dna?.species ? " - [new_human.dna.species.name]" : " - Human"]")
+		body_bag.tag_name = "[new_human.real_name][new_human.dna?.species ? " - [new_human.dna.species.name]" : " - Human"]"
+		body_bag.AddComponent(/datum/component/rename, "[initial(body_bag.name)][body_bag.tag_name? " - [body_bag.tag_name]" : null]", body_bag.desc)
+		body_bag.update_icon()
 		body_bag.forceMove(morgue_tray)
 
 		morgue_tray.update_appearance()
@@ -1489,11 +1499,6 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_atoms_ontop)
 	icon_state = "basic_mob_flammable"
 	flag_to_give = FLAMMABLE_MOB
 
-/obj/effect/mapping_helpers/basic_mob_flags/immune_to_fists
-	name = "Basic mob immune to fists flag helper"
-	icon_state = "basic_mob_immune_to_fists"
-	flag_to_give = IMMUNE_TO_FISTS
-
 /obj/effect/mapping_helpers/basic_mob_flags/immune_to_getting_wet
 	name = "Basic mob immune to getting wet flag helper"
 	icon_state = "basic_mob_immune_to_getting_wet"
@@ -1524,3 +1529,35 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_atoms_ontop)
 	name = "blunt impact dent"
 	icon_state = "impact1"
 	dent_type = WALL_DENT_HIT
+
+/***
+ * Used to prevent things from teleporting on (but not off) the turf through most means that do not call do_teleport() with the forced arg set to TRUE.
+ * The trait is removed if the turf is changed, so you should only keep it on small sections with indestructible turfs, ideally corners surrounded by
+ * other inaccessible walls. For larger sections, consider using areas with NO_TELEPORT or LOCAL_TELEPORT flags instead.
+ */
+/obj/effect/mapping_helpers/no_tele_turf
+	name = "no teleport turf"
+	icon_state = "no_teleport_turf"
+
+/obj/effect/mapping_helpers/wall_dent/Initialize(mapload)
+	. = ..()
+	var/turf/our_turf = get_turf(src)
+	ADD_TRAIT(our_turf, TRAIT_NO_TELEPORT, INNATE_TRAIT)
+
+/// Blesses turfs it is created on, then deletes itself
+/obj/effect/mapping_helpers/blessing
+	name = "holy blessing"
+	desc = "Holy energies interfere with ethereal travel at this location."
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "blessed"
+	/// Is this blessing visible to those with the ability to see blessed tiles? (chaplains)
+	var/invisible = FALSE
+
+/obj/effect/mapping_helpers/blessing/Initialize(mapload)
+	. = ..()
+	if (isturf(loc))
+		loc.AddElement(/datum/element/blessed_turf, invisible)
+	return INITIALIZE_HINT_QDEL
+
+/obj/effect/mapping_helpers/blessing/invisible
+	invisible = TRUE

@@ -17,8 +17,7 @@
 	spell_requirements = NONE
 
 /datum/action/cooldown/spell/caretaker/Remove(mob/living/remove_from)
-	if(remove_from.has_status_effect(/datum/status_effect/caretaker_refuge))
-		remove_from.remove_status_effect(/datum/status_effect/caretaker_refuge)
+	remove_from.remove_status_effect(/datum/status_effect/caretaker_refuge)
 	return ..()
 
 /datum/action/cooldown/spell/caretaker/is_valid_target(atom/cast_on)
@@ -30,7 +29,7 @@
 		return
 
 	for(var/mob/living/alive in orange(5, owner))
-		if(alive.stat != DEAD && alive.client)
+		if(alive.stat != DEAD && alive.client && (owner in view(alive)))
 			owner.balloon_alert(owner, "other minds nearby!")
 			return . | SPELL_CANCEL_CAST
 

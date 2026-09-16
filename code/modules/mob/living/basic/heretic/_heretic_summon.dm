@@ -10,7 +10,7 @@
 
 	habitable_atmos = null
 	status_flags = CANPUSH
-	damage_coeff = list(BRUTE = 1, BURN = 1, TOX = 0, STAMINA = 0, OXY = 0)
+	physiology = list(BRUTE = 0.7, BURN = 0.7, TOX = 0, OXY = 0, STAMINA = 0)
 	speed = 0
 	melee_attack_cooldown = CLICK_CD_MELEE
 
@@ -34,5 +34,5 @@
 
 /mob/living/basic/heretic_summon/Initialize(mapload)
 	. = ..()
-	AddElement(/datum/element/death_drops, string_list(list(/obj/effect/gibspawner/generic)))
+	AddElement(/datum/element/death_drops, /obj/effect/gibspawner/generic)
 	ADD_TRAIT(src, TRAIT_HERETIC_SUMMON, INNATE_TRAIT)

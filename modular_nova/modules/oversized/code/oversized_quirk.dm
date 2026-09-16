@@ -1,4 +1,4 @@
-#define OVERSIZED_SPEED_SLOWDOWN 0.5
+#define OVERSIZED_SPEED_SLOWDOWN 0.2
 #define OVERSIZED_HUNGER_MOD 1.5
 
 // Before making any changes to oversized, please see the module's readme.md file
@@ -12,7 +12,7 @@
 	value = 0
 	mob_trait = TRAIT_OVERSIZED
 	icon = FA_ICON_EXPAND_ARROWS_ALT
-	nova_stars_only = TRUE
+
 	quirk_flags = QUIRK_HUMAN_ONLY|QUIRK_CHANGES_APPEARANCE
 	/// Saves refs to the original (normal size) organs, which are on ice in nullspace in case this quirk gets removed somehow.
 	var/list/obj/item/organ/old_organs
@@ -20,9 +20,10 @@
 /datum/quirk/oversized/add(client/client_source)
 	var/mob/living/carbon/human/human_holder = quirk_holder
 	human_holder.dna.features["body_size"] = 2
-	human_holder.maptext_height = 32 * human_holder.dna.features["body_size"] //Adjust runechat height
-	human_holder.dna.update_body_size()
+	if(!isdummy(human_holder))
+		human_holder.dna.update_body_size()
 	human_holder.mob_size = MOB_SIZE_LARGE
+	ADD_TRAIT(quirk_holder, TRAIT_STURDY_FRAME, QUIRK_TRAIT)
 
 	RegisterSignal(human_holder, COMSIG_CARBON_POST_ATTACH_LIMB, PROC_REF(on_gain_limb)) // make sure we handle this when new ones are applied
 
@@ -31,7 +32,7 @@
 		on_gain_limb(src, bodypart, special = FALSE)
 
 	human_holder.blood_volume_normal = BLOOD_VOLUME_OVERSIZED
-	human_holder.physiology.hunger_mod *= OVERSIZED_HUNGER_MOD //50% hungrier
+	MODIFY_PHYSIOLOGY(human_holder, PHYS_COEFF_HUNGER_MOD, OVERSIZED_HUNGER_MOD) //50% hungrier
 	human_holder.add_movespeed_modifier(/datum/movespeed_modifier/oversized)
 
 	human_holder.dna.species.gain_oversized_organs(human_holder, src) // handles the addition of oversized organs (species default is a plain oversized stomach)
@@ -39,9 +40,10 @@
 /datum/quirk/oversized/remove()
 	var/mob/living/carbon/human/human_holder = quirk_holder
 	human_holder.dna.features["body_size"] = human_holder?.client?.prefs ?human_holder?.client?.prefs?.read_preference(/datum/preference/numeric/body_size) : 1
-	human_holder.maptext_height = 32 * human_holder.dna.features["body_size"]
-	human_holder.dna.update_body_size()
+	if(!isdummy(human_holder))
+		human_holder.dna.update_body_size()
 	human_holder.mob_size = MOB_SIZE_HUMAN
+	REMOVE_TRAIT(quirk_holder, TRAIT_STURDY_FRAME, QUIRK_TRAIT)
 
 	var/obj/item/bodypart/arm/left/left_arm = human_holder.get_bodypart(BODY_ZONE_L_ARM)
 	if(left_arm)
@@ -65,7 +67,7 @@
 	UnregisterSignal(human_holder, COMSIG_CARBON_POST_ATTACH_LIMB)
 
 	human_holder.blood_volume_normal = BLOOD_VOLUME_NORMAL
-	human_holder.physiology.hunger_mod /= OVERSIZED_HUNGER_MOD
+	MODIFY_PHYSIOLOGY(human_holder, PHYS_COEFF_HUNGER_MOD, 1 / OVERSIZED_HUNGER_MOD)
 	human_holder.remove_movespeed_modifier(/datum/movespeed_modifier/oversized)
 
 	for(var/obj/item/organ/organ_to_restore in old_organs)

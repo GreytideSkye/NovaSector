@@ -93,16 +93,17 @@
 		return . || mover.throwing || mover.movement_type & (FLYING | FLOATING)
 	return TRUE
 
-/obj/structure/deployable_barricade/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
-	if(istype(attacking_item, /obj/item/stack/cable_coil) && can_wire)
-		var/obj/item/stack/stack_item = attacking_item
+/obj/structure/deployable_barricade/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	if(istype(tool, /obj/item/stack/cable_coil) && can_wire)
+		var/obj/item/stack/stack_item = tool
 		if(stack_item.use(5))
 			wire()
+			return ITEM_INTERACT_SUCCESS
 		else
-			return
+			return ITEM_INTERACT_BLOCKING
 	else
-		..()
 		update_icon()
+		return ..()
 
 /obj/structure/deployable_barricade/attack_animal(mob/user)
 	return attack_alien(user)
@@ -202,22 +203,14 @@
 		else
 			. += image('modular_nova/modules/barricades/icons/barricade.dmi', icon_state = "[barricade_type]_closed_wire")
 
-/obj/structure/deployable_barricade/verb/rotate()
-	set name = "Rotate barricade counterclockwise <"
-	set category = "Object"
-	set src in oview(1)
-
+GAME_VERB_SRC(/obj/structure/deployable_barricade, rotate, oview(1), "Rotate barricade counterclockwise <", null)
 	if(anchored)
 		to_chat(usr, span_warning("It is secured to the floor, you can't turn it!"))
 		return FALSE
 
 	setDir(turn(dir, 90))
 
-/obj/structure/deployable_barricade/verb/revrotate()
-	set name = "Rotate barricade clockwise >"
-	set category = "Object"
-	set src in oview(1)
-
+GAME_VERB_SRC(/obj/structure/deployable_barricade, revrotate, oview(1), "Rotate barricade clockwise >", null)
 	if(anchored)
 		to_chat(usr, span_warning("It is secured to the floor, you can't turn it!"))
 		return FALSE
@@ -248,6 +241,7 @@
 	stack_amount = 2
 	destroyed_stack_amount = 0
 	can_wire = FALSE
+	custom_materials = list(/datum/material/snow = SHEET_MATERIAL_AMOUNT * 2)
 
 /*----------------------*/
 // GUARD RAIL
@@ -264,6 +258,7 @@
 	barricade_type = "railing"
 	pass_flags_self = PASSSTRUCTURE
 	can_wire = FALSE
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT)
 
 /datum/armor/deployable_barricade_guardrail
 	melee = 35
@@ -294,11 +289,12 @@
 	can_change_dmg_state = FALSE
 	barricade_type = "wooden"
 	can_wire = FALSE
+	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 5)
 
-/obj/structure/deployable_barricade/wooden/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
+/obj/structure/deployable_barricade/wooden/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
 	. = ..()
-	if(istype(attacking_item, /obj/item/stack/sheet/mineral/wood))
-		var/obj/item/stack/sheet/mineral/wood/wood = attacking_item
+	if(istype(tool, /obj/item/stack/sheet/mineral/wood))
+		var/obj/item/stack/sheet/mineral/wood/wood = tool
 		if(get_integrity() >= max_integrity)
 			return
 
@@ -353,6 +349,7 @@
 	var/repair_amount = 2
 	/// Can we be upgraded?
 	var/can_upgrade = TRUE
+	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 2)
 
 /datum/armor/deployable_barricade_metal
 	bio = 80
@@ -417,39 +414,40 @@
 		if(BARRICADE_TYPE_ACID)
 			. += image('modular_nova/modules/barricades/icons/barricade.dmi', icon_state = "+burn_upgrade_[damage_state]")
 
-/obj/structure/deployable_barricade/metal/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
-	if(istype(attacking_item, /obj/item/stack/sheet/iron))
-		var/obj/item/stack/sheet/iron/metal_sheets = attacking_item
+/obj/structure/deployable_barricade/metal/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	if(istype(tool, /obj/item/stack/sheet/iron))
+		var/obj/item/stack/sheet/iron/metal_sheets = tool
 		if(can_upgrade && get_integrity() > max_integrity * 0.3)
-			return attempt_barricade_upgrade(attacking_item, user, modifiers)
+			return attempt_barricade_upgrade(tool, user, modifiers)
 
 		if(metal_sheets.get_amount() < repair_amount)
 			to_chat(user, span_warning("You need at least two sheets of metal to repair [src]!"))
-			return FALSE
+			return ITEM_INTERACT_BLOCKING
 
 		visible_message(span_notice("[user] begins to repair [src]."))
 
 		if(!do_after(user, 2 SECONDS, src) || get_integrity() >= max_integrity)
-			return FALSE
+			return ITEM_INTERACT_BLOCKING
 
 		if(!metal_sheets.use(repair_amount))
-			return FALSE
+			return ITEM_INTERACT_BLOCKING
 
 		repair_damage(max_integrity * 0.3)
 		visible_message(span_notice("[user] repairs [src]."))
+		return ITEM_INTERACT_SUCCESS
 	return ..()
 
 /obj/structure/deployable_barricade/metal/proc/attempt_barricade_upgrade(obj/item/stack/sheet/iron/metal_sheets, mob/user, modifiers)
 	if(barricade_upgrade_type)
 		to_chat(user, span_warning("[src] is already upgraded."))
-		return FALSE
+		return ITEM_INTERACT_BLOCKING
 	if(get_integrity() < max_integrity)
 		to_chat(user, span_warning("You cannot upgrade [src] until it has been repaired!"))
-		return FALSE
+		return ITEM_INTERACT_BLOCKING
 
 	if(metal_sheets.get_amount() < BARRICADE_UPGRADE_REQUIRED_SHEETS)
 		to_chat(user, span_warning("You need at least <b>[BARRICADE_UPGRADE_REQUIRED_SHEETS]</b> to upgrade [src]!"))
-		return FALSE
+		return ITEM_INTERACT_BLOCKING
 
 	var/static/list/cade_types = list(BARRICADE_TYPE_BOMB = image(icon = 'modular_nova/modules/barricades/icons/barricade.dmi', icon_state = "explosive_obj"), BARRICADE_TYPE_MELEE = image(icon = 'modular_nova/modules/barricades/icons/barricade.dmi', icon_state = "brute_obj"), BARRICADE_TYPE_ACID = image(icon = 'modular_nova/modules/barricades/icons/barricade.dmi', icon_state = "burn_obj"))
 	var/choice = show_radial_menu(user, src, cade_types, require_near = TRUE, tooltips = TRUE)
@@ -457,10 +455,10 @@
 	user.visible_message(span_notice("[user] starts attaching [choice] to [src]."),
 		span_notice("You start attaching [choice] to [src]."))
 	if(!do_after(user, 2 SECONDS, src))
-		return FALSE
+		return ITEM_INTERACT_BLOCKING
 
 	if(!metal_sheets.use(BARRICADE_UPGRADE_REQUIRED_SHEETS))
-		return FALSE
+		return ITEM_INTERACT_BLOCKING
 
 	switch(choice)
 		if(BARRICADE_TYPE_BOMB)
@@ -477,6 +475,7 @@
 
 	playsound(src, 'sound/items/tools/screwdriver.ogg', 25, TRUE)
 	update_icon()
+	return ITEM_INTERACT_SUCCESS
 
 /obj/structure/deployable_barricade/metal/examine(mob/user)
 	. = ..()
@@ -591,7 +590,7 @@
 			return TRUE
 
 
-/obj/structure/deployable_barricade/metal/crowbar_act(mob/living/user, obj/item/I)
+/obj/structure/deployable_barricade/metal/crowbar_act(mob/living/user, obj/item/tool)
 	switch(build_state)
 		if(BARRICADE_METAL_LOOSE) //Anchor bolts loosened step. Apply crowbar to unseat the panel and take apart the whole thing. Apply wrench to resecure anchor bolts
 			user.visible_message(span_notice("[user] begins to disassemble [src]."),
@@ -672,6 +671,7 @@
 	var/linked = FALSE
 	///Open/close delay, for customisation. And because I was asked to - won't customise anything myself.
 	var/toggle_delay = 2 SECONDS
+	custom_materials = list(/datum/material/alloy/plasteel = SHEET_MATERIAL_AMOUNT * 2)
 
 /obj/structure/deployable_barricade/metal/plasteel/crowbar_act(mob/living/user, obj/item/I)
 	switch(build_state)

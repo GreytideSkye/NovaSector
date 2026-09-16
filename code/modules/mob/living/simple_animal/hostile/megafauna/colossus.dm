@@ -51,8 +51,9 @@
 	achievement_type = /datum/award/achievement/boss/colossus_kill
 	crusher_achievement_type = /datum/award/achievement/boss/colossus_crusher
 	score_achievement_type = /datum/award/score/colussus_score
-	crusher_loot = list(/obj/structure/closet/crate/necropolis/colossus/crusher)
 	loot = list(/obj/structure/closet/crate/necropolis/colossus)
+	crusher_loot = /obj/structure/closet/crate/necropolis/colossus/crusher
+	replace_crusher_drop = TRUE
 	death_message = "disintegrates, leaving a glowing core in its wake."
 	death_sound = 'sound/effects/magic/demon_dies.ogg'
 	summon_line = "Your trial begins now."
@@ -154,7 +155,7 @@
 /mob/living/simple_animal/hostile/megafauna/colossus/proc/enrage(mob/living/victim)
 	if(!ishuman(victim))
 		return FALSE
-	if(isgolem(victim) && victim.has_status_effect(/datum/status_effect/golem/gold))
+	if(victim.has_status_effect(/datum/status_effect/golem/gold))
 		return TRUE
 
 	return istype(GET_ACTIVE_MARTIAL_ART(victim), /datum/martial_art/the_sleeping_carp)
@@ -218,6 +219,12 @@
 			var/mob/living/simple_animal/hostile/megafauna/megafauna = firer
 			megafauna.devour(target)
 			return
+		return
+		// Shielded type for Interdyne.
+	if(istype(target, /turf/closed/wall/mineral/titanium/shielded) || \
+		istype(target, /turf/closed/wall/mineral/titanium/nodiagonal/shielded) || \
+		istype(target, /turf/closed/wall/r_wall/plastitanium/syndicate/shielded) || \
+		istype(target, /turf/closed/wall/r_wall/plastitanium/syndicate/nodiagonal/shielded))
 		return
 		// NOVA EDIT ADDITION END
 	if(!explode_hit_objects || istype(target, /obj/vehicle/sealed))

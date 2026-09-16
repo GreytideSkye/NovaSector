@@ -2,7 +2,6 @@
 	title = JOB_CURATOR
 	description = "Read and write books and hand them to people, stock \
 		bookshelves, report on station news."
-	department_head = list(JOB_HEAD_OF_PERSONNEL)
 	faction = FACTION_STATION
 	total_positions = 1
 	spawn_positions = 1
@@ -35,6 +34,7 @@
 
 	voice_of_god_silence_power = 3
 	rpg_title = "Veteran Adventurer"
+	tgui_icon = FA_ICON_BOOK
 
 /datum/outfit/job/curator
 	name = "Curator"
@@ -47,7 +47,7 @@
 		/obj/item/choice_beacon/hero = 1,
 		/obj/item/glassblowing/magnifying_glass, //NOVA EDIT: Magnifying Glass
 	)
-	belt = /obj/item/modular_computer/pda/curator
+	belt = /obj/item/modular_computer/pda/crew/curator
 	ears = /obj/item/radio/headset/headset_srvent
 	shoes = /obj/item/clothing/shoes/laceup
 	l_pocket = /obj/item/laser_pointer/green

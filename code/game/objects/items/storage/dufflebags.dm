@@ -132,6 +132,12 @@
 	icon_state = "duffel-medical"
 	inhand_icon_state = "duffel-med"
 
+/obj/item/storage/backpack/duffelbag/chief_medic
+	name = "chief medical officer's duffel bag"
+	desc = "A large duffel bag for handling the duties of the entire medical department at once."
+	icon_state = "duffel-chiefmedical"
+	inhand_icon_state = "duffel-med"
+
 /obj/item/storage/backpack/duffelbag/coroner
 	name = "coroner duffel bag"
 	desc = "A large duffel bag for holding large amounts of organs at once."
@@ -282,7 +288,7 @@
 	new /obj/item/bonesetter(src)
 	new /obj/item/blood_filter(src)
 	new /obj/item/stack/medical/bone_gel(src)
-	new /obj/item/stack/sticky_tape/surgical(src)
+	new /obj/item/stack/medical/wrap/sticky_tape/surgical(src)
 	new /obj/item/emergency_bed(src)
 	new /obj/item/clothing/suit/jacket/straight_jacket(src)
 	new /obj/item/clothing/mask/muzzle(src)
@@ -369,7 +375,7 @@
 	storage_type = /datum/storage/duffel/syndicate
 
 /obj/item/storage/backpack/duffelbag/clown/syndie/PopulateContents()
-	new /obj/item/modular_computer/pda/clown(src)
+	new /obj/item/modular_computer/pda/crew/clown(src)
 	new /obj/item/clothing/under/rank/civilian/clown(src)
 	new /obj/item/clothing/shoes/clown_shoes(src)
 	new /obj/item/clothing/mask/gas/clown_hat(src)
@@ -396,10 +402,17 @@
 	new /obj/item/clothing/glasses/meson(src)
 	new /obj/item/t_scanner/adv_mining_scanner/lesser(src)
 	new /obj/item/storage/bag/ore(src)
+	/* // NOVA EDIT REMOVAL - START
 	new /obj/item/clothing/suit/hooded/explorer(src)
 	new /obj/item/encryptionkey/headset_mining(src)
 	new /obj/item/clothing/mask/gas/explorer(src)
 	new /obj/item/card/id/advanced/mining(src)
+	*/ // NOVA EDIT REMOVAL - END
+	// NOVA EDIT ADDITION - START
+	new /obj/item/clothing/suit/hooded/seva(src)
+	new /obj/item/clothing/mask/gas/seva(src)
+	// NOVA EDIT ADDITION - END
 	new /obj/item/gun/energy/recharge/kinetic_accelerator(src)
 	new /obj/item/knife/combat/survival(src)
 	new /obj/item/flashlight/seclite(src)
+	new /obj/item/stack/candela_beacon/thirty(src)

@@ -3,26 +3,18 @@
 	desc = "A pair of wings. Those may or may not allow you to fly... or at the very least flap."
 	zone = BODY_ZONE_CHEST
 	slot = ORGAN_SLOT_WINGS
-	mutantpart_key = "wings"
-	mutantpart_info = list(MUTANT_INDEX_NAME = "Bat", MUTANT_INDEX_COLOR_LIST = list("#335533"))
-	///Whether the wings should grant flight on insertion.
-	var/unconditional_flight
-	///What species get flights thanks to those wings. Important for moth wings
-	var/list/flight_for_species
-	///Whether a wing can be opened by the *wing emote. The sprite use a "_open" suffix, before their layer
-	var/can_open
-	///Whether an openable wing is currently opened
-	var/is_open
-	///Whether the owner of wings has flight thanks to the wings
-	var/granted_flight
+	mutantpart_key = FEATURE_WINGS
+
+// Upstream's wing base type now defaults to the functional overlay, but our player-customized
+// wings are purely cosmetic and need the plain one to keep their chosen colors.
+/obj/item/organ/wings/custom
+	bodypart_overlay = /datum/bodypart_overlay/mutant/wings
 
 /datum/bodypart_overlay/mutant/wings
 	color_source = ORGAN_COLOR_OVERRIDE
 
 /datum/bodypart_overlay/mutant/wings/get_global_feature_list()
-	return SSaccessories.sprite_accessories["wings"]
-
-//TODO: Well you know what this flight stuff is a bit complicated and hardcoded, this is enough for now
+	return SSaccessories.sprite_accessories[FEATURE_WINGS]
 
 /datum/bodypart_overlay/mutant/wings/override_color(rgb_value)
 	return draw_color
@@ -30,7 +22,6 @@
 /obj/item/organ/wings/moth
 	name = "moth wings"
 	desc = "A pair of fuzzy moth wings."
-	flight_for_species = list(SPECIES_MOTH)
 	///Our associated shadow jaunt spell, for all nightmares
 	var/datum/action/cooldown/spell/touch/moth_climb/our_climb
 	///Our associated terrorize spell, for antagonist nightmares
@@ -66,6 +57,9 @@
 	COOLDOWN_DECLARE(dash_cooldown)
 
 /datum/action/cooldown/spell/moth_and_dash/Trigger(trigger_flags, action, atom/target)
+	. = ..()
+	if(!.)
+		return
 	if (!isliving(owner))
 		return
 
@@ -92,7 +86,7 @@
 		COOLDOWN_START(src, dash_cooldown, 6 SECONDS)
 		var/mob/living/dash_user = owner
 		if(istype(dash_user))
-			dash_user.adjustStaminaLoss(37.5) //Given the risk of flying into things and crashing quite violently, you get four of these. Every one slows you down anyway.
+			dash_user.adjust_stamina_loss(37.5) //Given the risk of flying into things and crashing quite violently, you get four of these. Every one slows you down anyway.
 	else
 		REMOVE_TRAIT(owner, TRAIT_MOVE_FLOATING, LEAPING_TRAIT)
 		to_chat(owner, span_warning("Something prevents you from dashing forward!"))
@@ -164,7 +158,7 @@
 
 	if(do_after(user, climb_time, target))
 		user.forceMove(target)
-		user.adjustStaminaLoss(100)
+		user.adjust_stamina_loss(100)
 		playsound(user_turf, 'sound/mobs/humanoids/moth/moth_flutter.ogg', 50) //a third time for seasoning
 		. = ITEM_INTERACT_SUCCESS
 	QDEL_LIST(effects)
@@ -185,44 +179,20 @@
 			return TRUE
 	return FALSE
 
-/obj/item/organ/wings/flight
-	unconditional_flight = TRUE
-	can_open = TRUE
-
-/obj/item/organ/wings/flight/angel
-	name = "angel wings"
-	desc = "A pair of magnificent, feathery wings. They look strong enough to lift you up in the air."
-	mutantpart_info = list(MUTANT_INDEX_NAME = "Angel", MUTANT_INDEX_COLOR_LIST = list("#FFFFFF"))
-
-/obj/item/organ/wings/flight/dragon
-	name = "dragon wings"
-	desc = "A pair of intimidating, membranous wings. They look strong enough to lift you up in the air."
-	mutantpart_info = list(MUTANT_INDEX_NAME = "Dragon", MUTANT_INDEX_COLOR_LIST = list("#880000"))
-
-/obj/item/organ/wings/flight/megamoth
-	name = "megamoth wings"
-	desc = "A pair of horrifyingly large, fuzzy wings. They look strong enough to lift you up in the air."
-	mutantpart_info = list(MUTANT_INDEX_NAME = "Megamoth", MUTANT_INDEX_COLOR_LIST = list("#FFFFFF"))
-
-
 /datum/bodypart_overlay/mutant/wings/functional
 	color_source = ORGAN_COLOR_INHERIT
-
 
 /datum/bodypart_overlay/mutant/wings/functional/original_color
 	color_source = ORGAN_COLOR_OVERRIDE
 
-
 /datum/bodypart_overlay/mutant/wings/functional/original_color/override_color(rgb_value)
 	return COLOR_WHITE // We want to keep those wings as their original color, because it looks better.
 
-
 /datum/bodypart_overlay/mutant/wings/functional/locked/get_global_feature_list()
 	if(wings_open)
-		return SSaccessories.sprite_accessories["wings_open"]
+		return SSaccessories.sprite_accessories[FEATURE_WINGS_OPEN]
 
-	return SSaccessories.sprite_accessories["wings_functional"]
-
+	return SSaccessories.sprite_accessories[FEATURE_WINGS_FUNCTIONAL]
 
 // We need to overwrite this because all of these wings are locked.
 /datum/bodypart_overlay/mutant/wings/functional/locked/get_random_appearance()
@@ -234,29 +204,36 @@
 
 	return pick(valid_restyles)
 
-
 /datum/bodypart_overlay/mutant/wings/functional/locked/original_color
 	color_source = ORGAN_COLOR_OVERRIDE
-
 
 /datum/bodypart_overlay/mutant/wings/functional/locked/original_color/override_color(rgb_value)
 	return COLOR_WHITE // We want to keep those wings as their original color, because it looks better.
 
-
-/obj/item/organ/wings/functional
-	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional/locked
-
-/obj/item/organ/wings/functional/angel
+// Upstream collapsed /obj/item/organ/wings/functional into the /obj/item/organ/wings base type, so
+// the "locked" overlay that every functional wing used to inherit has to be set per type now - the
+// base is shared with cosmetic wings and can't carry it anymore.
+/obj/item/organ/wings/angel
 	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional/original_color
 
-/obj/item/organ/wings/functional/dragon
+/obj/item/organ/wings/dragon
 	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional
 
-/obj/item/organ/wings/functional/moth
+/obj/item/organ/wings/robotic
+	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional
+
+/obj/item/organ/wings/slime
+	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional
+
+/obj/item/organ/wings/skeleton
+	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional/locked
+
+/obj/item/organ/wings/fly
+	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional/locked
+
+// These two used to share a /functional/moth parent that carried the overlay for both.
+/obj/item/organ/wings/mothra
 	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional/locked/original_color
 
-/obj/item/organ/wings/functional/robotic
-	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional
-
-/obj/item/organ/wings/functional/slime
-	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional
+/obj/item/organ/wings/megamoth
+	bodypart_overlay = /datum/bodypart_overlay/mutant/wings/functional/locked/original_color

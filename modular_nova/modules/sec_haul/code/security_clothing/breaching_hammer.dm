@@ -28,7 +28,7 @@
 
 /obj/item/melee/breaching_hammer/Initialize(mapload)
 	. = ..()
-	AddElement(/datum/element/kneecapping)
+	AddElement(/datum/element/mauling, swing_delay = 2 SECONDS, mauling_damage_mult = 2)
 
 /obj/item/melee/breaching_hammer/interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
 	if(!istype(interacting_with, /obj/machinery/door))
@@ -81,7 +81,7 @@
 
 /// Keeps looping under the door is no more , or someone moves , gets shot , dies , incapacitated , stunned , etc
 /obj/item/melee/breaching_hammer/proc/breaching_loop(mob/living/user, obj/target)
-	if(user.stat || !target)
+	if(IS_UNCONSCIOUS_OR_CRIT(user) || !target)
 		remove_track(user)
 		return FALSE
 	if(!(user.Adjacent(target)))

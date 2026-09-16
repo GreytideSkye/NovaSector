@@ -18,6 +18,7 @@
 	sharpness = SHARP_POINTY
 	force = 18
 	antimagic_flags = NONE
+	can_muzzle_flash = FALSE
 
 /obj/item/gun/magic/hook/shoot_with_empty_chamber(mob/living/user)
 	balloon_alert(user, "not ready yet!")
@@ -40,6 +41,9 @@
 	playsound(get_turf(src), 'sound/items/weapons/bladeslice.ogg', 70)
 	removable.dismember(silent = FALSE)
 	return BRUTELOSS
+
+/obj/item/gun/magic/hook/on_mail_unwrap(mob/user, obj/item/mail/traitor/letter)
+	return NONE
 
 /obj/item/ammo_casing/magic/hook
 	name = "hook"
@@ -64,7 +68,7 @@
 
 /obj/projectile/hook/fire(setAngle)
 	if(firer)
-		initial_chain = firer.Beam(src, icon_state = "chain", icon = chain_icon, emissive = FALSE) // NOVA EDIT CHANGE - Adds icon arg - ORIGINAL: chain = firer.Beam(src, icon_state = "chain", emissive = FALSE)
+		initial_chain = firer.Beam(src, icon_state = "chain", icon = chain_icon, emissive = NONE) // NOVA EDIT CHANGE - Adds icon arg - ORIGINAL: chain = firer.Beam(src, icon_state = "chain", emissive = NONE)
 		ADD_TRAIT(firer, TRAIT_IMMOBILIZED, REF(src))
 		addtimer(TRAIT_CALLBACK_REMOVE(firer, TRAIT_IMMOBILIZED, REF(src)), IMMOBILIZATION_TIMER) // safety if we miss, if we get a hit we stay immobilized
 	return ..()
@@ -123,7 +127,7 @@
 
 /// Uses fastprocessing to move our victim to the destination at a rather fast speed.
 /datum/hook_and_move/proc/begin_pulling(atom/movable/firer, atom/movable/victim, atom/destination)
-	return_chain = firer.Beam(victim, icon_state = "chain", emissive = FALSE)
+	return_chain = firer.Beam(victim, icon_state = "chain", emissive = NONE)
 
 	firer_ref_string = REF(firer)
 	ADD_TRAIT(victim, TRAIT_HOOKED, firer_ref_string)

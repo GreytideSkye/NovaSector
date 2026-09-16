@@ -153,6 +153,9 @@
 
 // Trigger thing for manual breath
 /datum/action/item_action/toggle_breathcontrol/Trigger(trigger_flags)
+	. = ..()
+	if(!.)
+		return
 	var/obj/item/clothing/mask/gas/bdsm_mask/mask = target
 	if(istype(mask))
 		mask.check(owner)
@@ -162,6 +165,9 @@
 	desc = "Toggles whether or not the wearer is able to speak."
 
 /datum/action/item_action/toggle_gag/Trigger(trigger_flags)
+	. = ..()
+	if(!.)
+		return
 	var/obj/item/clothing/mask/gas/bdsm_mask/mask = target
 	if(istype(mask))
 		mask.check_gag(owner)
@@ -172,9 +178,12 @@
 
 // Open the valve when press the button
 /datum/action/item_action/mask_inhale/Trigger(trigger_flags)
+	. = ..()
+	if(!.)
+		return
 	var/obj/item/clothing/mask/gas/bdsm_mask/mask = target
 	if(!istype(mask))
-		return ..()
+		return FALSE
 
 	if(mask.breath_status)
 		return FALSE
@@ -219,7 +228,7 @@
 
 // To check if player already have this mask on and trying to change mode
 /obj/item/clothing/mask/gas/bdsm_mask/proc/check(mob/living/carbon/user)
-	if(!istype(user) || src == user.wear_mask)
+	if(!istype(user) || src == user.get_item_by_slot(ITEM_SLOT_MASK))
 		to_chat(user, span_notice("You can't reach the air filter switch!"))
 		return
 	toggle(user)
@@ -232,7 +241,7 @@
 	update_mob_action_buttonss()
 	update_icon()
 	if(mask_on)
-		if(src == user.wear_mask && user.client?.prefs?.read_preference(/datum/preference/toggle/erp/sex_toy))
+		if(istype(user) && src == user.get_item_by_slot(ITEM_SLOT_MASK) && user.client?.prefs?.read_preference(/datum/preference/toggle/erp/sex_toy))
 			START_PROCESSING(SSobj, src)
 			time_to_choke_left = time_to_choke
 	else
@@ -240,7 +249,7 @@
 
 /obj/item/clothing/mask/gas/bdsm_mask/proc/check_gag(user)
 	var/mob/living/carbon/affected_carbon = user
-	if(src == affected_carbon.wear_mask)
+	if(istype(src) && src == affected_carbon.get_item_by_slot(ITEM_SLOT_MASK))
 		to_chat(user, span_notice("You can't reach the gag switch!"))
 	else
 		toggle_gag(affected_carbon)
@@ -258,12 +267,12 @@
 		return FALSE
 
 	if(time_to_choke_left < time_to_choke/2 && breath_status == TRUE)
-		if(temp_check == FALSE && affected_carbon.stat == CONSCIOUS) // If user passed out while wearing this we should continue when he wakes up
+		if(temp_check == FALSE && !IS_UNCONSCIOUS_OR_CRIT(affected_carbon)) // If user passed out while wearing this we should continue when he wakes up
 			breath_status = FALSE
 			time_to_choke_left = time_to_choke
 			temp_check = TRUE
 
-		if(affected_carbon.stat == CONSCIOUS)
+		if(!IS_UNCONSCIOUS_OR_CRIT(affected_carbon))
 			affected_carbon.try_lewd_autoemote("exhale")
 			breath_status = FALSE
 			if(rand(0, 3) == 0)
@@ -274,8 +283,8 @@
 
 	if(time_to_choke_left <= 0)
 		if(tt <= 0)
-			if(affected_carbon.stat == CONSCIOUS)
-				affected_carbon.adjustOxyLoss(rand(4, 8)) // Oxy dmg
+			if(!IS_UNCONSCIOUS_OR_CRIT(affected_carbon))
+				affected_carbon.adjust_oxy_loss(rand(4, 8)) // Oxy dmg
 				affected_carbon.try_lewd_autoemote(pick("gasp", "choke", "moan"))
 				tt = time
 			else
@@ -291,14 +300,24 @@
 */
 
 // Here goes code for lewd gasmask filter
+/datum/atom_skin/gasmask_filter
+	abstract_type = /datum/atom_skin/gasmask_filter
+
+/datum/atom_skin/gasmask_filter/pink
+	preview_name = "pink"
+	new_icon_state = "filter_pink"
+
+/datum/atom_skin/gasmask_filter/teal
+	preview_name = "teal"
+	new_icon_state = "filter_teal"
+
 /obj/item/reagent_containers/cup/lewd_filter
 	name = "gasmask filter"
 	desc = "A strange looking air filter. It may not be a good idea to breathe this in..."
 	icon = 'modular_nova/modules/modular_items/lewd_items/icons/obj/lewd_items/lewd_items.dmi'
 	icon_state = "filter_pink"
-	unique_reskin = list("pink" = "filter_pink",
-						"teal" = "filter_teal")
 	w_class = WEIGHT_CLASS_SMALL
+	obj_flags_nova = ERP_ITEM
 	custom_materials = list(
 		/datum/material/glass = SHEET_MATERIAL_AMOUNT,
 		/datum/material/plastic = SHEET_MATERIAL_AMOUNT,
@@ -308,6 +327,9 @@
 	list_reagents = list(/datum/reagent/drug/aphrodisiac/crocin = 50)
 	amount_per_transfer_from_this = 1
 	interaction_flags_click = NEED_DEXTERITY
+
+/obj/item/reagent_containers/cup/lewd_filter/setup_reskins()
+	AddComponent(/datum/component/reskinable_item, /datum/atom_skin/gasmask_filter)
 
 // Standard initialize code for filter
 /obj/item/reagent_containers/cup/lewd_filter/Initialize(mapload)

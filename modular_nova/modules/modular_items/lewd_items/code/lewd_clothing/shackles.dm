@@ -15,6 +15,7 @@
 	greyscale_config_worn_taur_hoof = /datum/greyscale_config/dorms_shackles/worn/taur_hoof
 	greyscale_config_worn_taur_snake = /datum/greyscale_config/dorms_shackles/worn/taur_snake
 	flags_1 = IS_PLAYER_COLORABLE_1
+	obj_flags_nova = ERP_ITEM
 	supports_variations_flags = CLOTHING_DIGITIGRADE_VARIATION
 	equip_delay_self = 1 SECONDS
 	strip_delay = 2 SECONDS
@@ -57,8 +58,11 @@
 	name = "reinforced shackles"
 	desc = "A set of sturdy shackles, with a heavy lock."
 	flags_1 = parent_type::flags_1 | NO_NEW_GAGS_PREVIEW_1
-	clothing_flags = DANGEROUS_OBJECT
 	equip_delay_self = 10 SECONDS
 	strip_delay = 12 SECONDS
 	breakouttime = 3 MINUTES // It's an ERP tool anyways.
 	slowdown = 2
+
+/obj/item/clothing/suit/straight_jacket/shackles/reinforced/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_DANGEROUS_EQUIP, INNATE_TRAIT)
