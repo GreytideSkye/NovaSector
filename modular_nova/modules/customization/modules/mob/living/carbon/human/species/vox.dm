@@ -95,7 +95,7 @@
 
 /datum/species/vox/get_species_lore()
 	return list(
-		"https://wiki.novasector13.com/wiki/Lore:Vox",
+		"<a href=\"https://wiki.novasector13.com/wiki/Lore:Vox\">Lore: Vox</a>",
 		"The species 'Vox' and 'Vox Primalis' are the same species; spriting and code issues demand separate species.",
 
 		"In simple words: Vox are strange. They have skin and bone but also metal? They ask a lot of questions and do a lot of learning. We don't know why! They can be found almost anywhere and their home is a moving group of big ships. \

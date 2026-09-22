@@ -1,6 +1,6 @@
 // Character creation podpeople
 /datum/species/pod/get_species_description()
-	return "Podpeople are leafy, plant-based humans grown from a Replica Pod Seed mixed with human blood, superficially resembling a hybrid of almost any bipedal humanoid and any photosynthetic plant. Replacing the original person, Podmen are a cheap 'second life' for those who can't afford better. Podmen heal in the light and wilt in the dark, dying in minutes."
+	return "Podpeople are leafy, plant-based humans grown from a Replica Pod Seed mixed with human blood, superficially resembling a hybrid of almost any bipedal humanoid and any photosynthetic plant. Replacing the original person, Podmen are a cheap 'second life' for those who can't afford better. Podmen heal in the light and wilt in the dark."
 
 /datum/species/pod/get_species_lore()
 	return list("https://wiki.novasector13.com/wiki/Lore:Podperson",

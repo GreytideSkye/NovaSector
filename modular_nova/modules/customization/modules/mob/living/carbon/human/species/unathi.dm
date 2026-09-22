@@ -68,12 +68,13 @@
 	features[FEATURE_MUTANT_COLOR_THREE] = second_color
 	return features
 
-/datum/species/lizard/get_species_description()
+//TODO: be smug that there was a bug here
+/datum/species/unathi/get_species_description()
 	return "The Tizirans, Unathi, and Ashwalkers encountered on the frontier share a common heritage. Each trace their lineage back to the arid aquifer world of Tizira. \
 		The earliest recorded evidence of what would be considered recognizably Tiziran culture dates back around 2200-2400 years before mankind first developed FTL capability. \
 		The Unathi can be differentiated by their digitigrade (flat) feet and their stronger tolerance for the cold weightlessness of space."
 
-/datum/species/lizard/get_species_lore()
+/datum/species/unathi/get_species_lore()
 	return list(
 		"https://wiki.novasector13.com/wiki/Lore:Unathi", //I don't know why the Tiziran author chose to separate lines to roughly 160 characters. Was this intended to be tweeted?
 		"The Tizirans, an ancient lizard-like species, originated on the desert world of Tizira and developed a complex society rooted in spirituality and nature. \
